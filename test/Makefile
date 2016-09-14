@@ -12,7 +12,7 @@
 
 # Change the following to point to where you have the MIPS cross-compiler
 # installed.
-GCCDIR = /cse306/mips-gcc/
+GCCDIR = ./mips/
 
 # Change the following to point to where you have Java executables installed.
 JAVADIR = 
