@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="machine.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/nachos_devel/machine.jar!/doc/machine"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/nachos/machine.jar!/doc/machine"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path=""/>
