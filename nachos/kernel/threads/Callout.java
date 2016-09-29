@@ -1,6 +1,8 @@
 package nachos.kernel.threads;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import nachos.machine.Machine;
@@ -20,7 +22,7 @@ public class Callout {
     private Callout() {
 	runnables = new ArrayList<>();
 	timer = Machine.getTimer(0);
-	timer.setHandler(new CalloutInterruptHandler(CalloutInitializer.INSTANCE));
+	timer.setHandler(new CalloutInterruptHandler(timer, CalloutInitializer.INSTANCE));
 	currentTime = 0;
     }
     
@@ -35,6 +37,25 @@ public class Callout {
      */
     public void schedule(final Runnable runnable, final int ticksFromNow) {
 	runnables.add(new ScheduledRunnable(runnable, currentTime + ticksFromNow));
+    }
+    
+    public void updateCurrentTime(long timeElapsed) {
+	currentTime += timeElapsed;
+    }
+    
+    public void performCallouts() {
+	Collections.sort(runnables, ScheduledRunnableComparator.getInstance());
+	Iterator<ScheduledRunnable> iterator = runnables.iterator();
+	
+	while (iterator.hasNext()) {
+	    ScheduledRunnable runnable = iterator.next();
+	    if (runnable.isReadyToRun(currentTime)) {
+		iterator.remove();
+		runnable.run();
+	    }
+	    else
+		break;
+	}
     }
     
     public static Callout getInstance() {

@@ -15,7 +15,7 @@ public class ScheduledRunnable implements Runnable {
         runnable.run();	    
     }
     
-    public boolean readyToRun(final long currentTime) {
+    public boolean isReadyToRun(final long currentTime) {
         return currentTime >= scheduledTime;
     }
     
