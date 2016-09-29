@@ -39,8 +39,8 @@ public class Callout {
 	runnables.add(new ScheduledRunnable(runnable, currentTime + ticksFromNow));
     }
     
-    public void updateCurrentTime(long timeElapsed) {
-	currentTime += timeElapsed;
+    public void updateCurrentTime() {
+	currentTime += timer.interval;
     }
     
     public void performCallouts() {

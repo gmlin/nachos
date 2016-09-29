@@ -15,7 +15,8 @@ public class CalloutInterruptHandler implements InterruptHandler {
     
     @Override
     public void handleInterrupt() {
-	callout.updateCurrentTime(timer.interval);
+	callout.updateCurrentTime();
+	callout.performCallouts();
     }
 
 }
