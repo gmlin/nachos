@@ -320,6 +320,27 @@ public class Scheduler {
 	// The caller is responsible for re-enabling interrupts.
     }
 
+    public void sleepThread(int ticks) {
+	NachosThread currentThread = NachosThread.currentThread();
+	Semaphore semaphore = new Semaphore("semaphore", 0);
+	Callout callout = Callout.getInstance();
+	
+	Debug.println('+', "*** thread " + currentThread.name + " sleeping for " + ticks + " ticks" );
+	
+	callout.schedule(new Runnable() {
+
+	    @Override
+	    public void run() {
+		semaphore.V();
+	    }
+	    
+	}, ticks);
+	
+	semaphore.P();
+	
+	Debug.println('+', "*** thread " + currentThread.name + " woke up");
+    }
+    
     /**
      * Called by a thread to terminate itself.
      * A thread can't completely destroy itself, because it needs some

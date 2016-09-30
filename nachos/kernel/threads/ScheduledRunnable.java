@@ -2,10 +2,10 @@ package nachos.kernel.threads;
 
 public class ScheduledRunnable implements Runnable {
     
-    private final Runnable runnable;
-    private final long scheduledTime;
+    private Runnable runnable;
+    private long scheduledTime;
     
-    public ScheduledRunnable(final Runnable runnable, final long scheduledTime) {
+    public ScheduledRunnable(Runnable runnable, long scheduledTime) {
         this.runnable = runnable;
         this.scheduledTime = scheduledTime;
     }
@@ -15,7 +15,7 @@ public class ScheduledRunnable implements Runnable {
         runnable.run();	    
     }
     
-    public boolean isReadyToRun(final long currentTime) {
+    public boolean isReadyToRun(long currentTime) {
         return currentTime >= scheduledTime;
     }
     

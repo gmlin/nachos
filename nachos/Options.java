@@ -181,6 +181,8 @@ public class Options {
     /** Should we run the network test? */
     public boolean NETWORK_TEST = false;
     
+    public boolean CALLOUT_TEST = true;
+    
     public Options(String[] args) {
 	argList = Arrays.asList(args);
 	parseArgList();
@@ -247,6 +249,14 @@ public class Options {
 				NETWORK_TEST = true;
 			    }
 			 }),
+		new Spec("-ct", // enable callout test
+			 new Class[] { },
+			 null,
+			 new Options.Action() {
+		            public void processOption(String flag, Object[] params) {
+		        	CALLOUT_TEST = true;
+		            }
+		         }),
 		new Spec("-tl",  // set simulation time limit
 			 new Class[] {Integer.class},
 			 "Usage: -tl <ticks>",
