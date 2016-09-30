@@ -161,7 +161,7 @@ public class Options {
     // Test/demo configuration options.
 
     /** Should we run the thread test? */
-    public boolean THREAD_TEST = true;  // Traditional Nachos behavior.
+    public boolean THREAD_TEST = false;  // Traditional Nachos behavior.
     
     /** Should we run the multiprocessor scheduling test? */
     public boolean SMP_TEST = false;

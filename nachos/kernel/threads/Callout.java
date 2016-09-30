@@ -14,6 +14,7 @@ public class Callout {
     private List<ScheduledRunnable> runnables;
     private Timer timer;
     private long currentTime;
+    private SpinLock spinlock;
     
     /** Nested static class to ensure only on Callout object is created */
     private static class CalloutInitializer {
@@ -25,6 +26,7 @@ public class Callout {
 	timer = Machine.getTimer(0);
 	timer.setHandler(new CalloutInterruptHandler());
 	currentTime = 0;
+	spinlock = new SpinLock("spinlock");
 	timer.start();
     }
     
@@ -39,7 +41,9 @@ public class Callout {
      */
     public void schedule(Runnable runnable, int ticksFromNow) {
 	int oldLevel = CPU.setLevel(CPU.IntOff);
+	spinlock.acquire();
 	runnables.add(new ScheduledRunnable(runnable, currentTime + ticksFromNow));
+	spinlock.release();
 	CPU.setLevel(oldLevel);
     }
     
@@ -48,6 +52,9 @@ public class Callout {
     }
     
     public void performCallouts() {
+	spinlock.acquire();
+	
+	updateCurrentTime();
 	Collections.sort(runnables, ScheduledRunnableComparator.getInstance());
 	Iterator<ScheduledRunnable> iterator = runnables.iterator();
 	
@@ -60,6 +67,8 @@ public class Callout {
 	    else
 		break;
 	}
+	
+	spinlock.release();
     }
     
     public Timer getTimer() {
