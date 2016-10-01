@@ -1,0 +1,60 @@
+Overview
+########
+
+# Part 1
+
+I kept a List that holds the ScheduledRunnable objects that are pending.
+ScheduledRunnable is a wrapper over a Runnable object that includes the
+time that it is scheduled to be run. I disabled interrupts when adding
+the ScheduledRunnable to the List. This is sufficient for single threaded
+code but not for multithreaded code because other threads can interfere.
+The timer for Callout is provided a custom interrupt handler which
+increments the system time as well as runs ScheduledRunnable objects
+that are ready to be run. In the performCallouts() method, I get the
+ScheduledRunnable objects that are ready and call run(). To make this work for
+multiple CPUs, I introduced a SpinLock that is acquired before
+accessing the List in the schedule() and performCallout() methods.
+
+For the CalloutTest, I created several threads that sleep for a random
+amount of ticks before waking up. This is accomplished by calling P()
+on a semaphore with an initial value of 0 and scheduling a Runnable
+that calls V() after some time. To exit the test gracefully, I introduced
+a Condition which waits for all the threads to finish running
+before stopping the Timer. Inside the while loop, the first thread
+calls await() to temporarily relinquish the Lock until notify() is called
+by another thread. Once all the threads finish running, the while loop is
+complete and the Timer is stopped.
+
+Instructions
+############
+
+Compiling the program is easily handled through Eclipse. Execute Nachos
+to start the program.
+
+# Part 1
+
+To run the test for part 1, simply append "-ct" to the run configuration.
+To run the test with multiple CPUs, append "-ncpu N" where N is the number
+of CPUs to use.
+
+Assumptions/Design
+##################
+
+# Part 1
+
+In Part 1, I made both Callout and ScheduledRunnableComparator singletons
+to ensure that there is only instance. I also ensure thread safety when
+creating the singletons by using a static nested class to create an instance
+of Callout and ScheduledRunnableComparator. When adding to the List of
+ScheduledRunnable, use binary search to find the insertion point. This allows
+for O(log n) to keep the list sorted as opposed to O(n log n) sorting after
+each insertion. The ScheduledRunnable objects are sorted in reverse order
+so that it only takes O(1) to remove the earliest scheduled Runnable from the
+List as opposed to O(N) if I were to remove from the front of the List. I also
+tried to minimize the work done in critical sections to increase performance.
+For example, instead of calling run() on the ScheduledRunnable objects while the
+SpinLock is held, I added the ScheduledRunnable objects that are ready to another
+List and called run() on them after the SpinLock is released.
+
+
+.
