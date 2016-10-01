@@ -43,8 +43,16 @@ public class Callout {
      */
     public void schedule(Runnable runnable, int ticksFromNow) {
 	int oldLevel = CPU.setLevel(CPU.IntOff);
+	ScheduledRunnable scheduledRunnable = new ScheduledRunnable(runnable, currentTime + ticksFromNow);
 	spinlock.acquire();
-	runnables.add(new ScheduledRunnable(runnable, currentTime + ticksFromNow));
+	
+	int insertIndex = Collections.binarySearch(runnables, scheduledRunnable, ScheduledRunnableComparator.getInstance());
+	if (insertIndex < 0) {
+	    insertIndex = -(insertIndex + 1);
+	}
+	
+	runnables.add(insertIndex, scheduledRunnable);
+	
 	spinlock.release();
 	CPU.setLevel(oldLevel);
     }
@@ -54,13 +62,12 @@ public class Callout {
     }
     
     public void performCallouts() {
+	List<ScheduledRunnable> readyToBeRun = new ArrayList<>();
+	
 	spinlock.acquire();
 	
 	updateCurrentTime();
-	Collections.sort(runnables, ScheduledRunnableComparator.getInstance());
 	ListIterator<ScheduledRunnable> iterator = runnables.listIterator(runnables.size());
-	
-	List<ScheduledRunnable> readyToBeRun = new ArrayList<>();
 	
 	while (iterator.hasPrevious()) {
 	    ScheduledRunnable runnable = iterator.previous();
