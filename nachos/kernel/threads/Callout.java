@@ -2,8 +2,8 @@ package nachos.kernel.threads;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import nachos.machine.CPU;
 import nachos.machine.Machine;
@@ -14,6 +14,7 @@ public class Callout {
     private List<ScheduledRunnable> runnables;
     private Timer timer;
     private long currentTime;
+    private int calloutsPerformed;
     private SpinLock spinlock;
     
     /** Nested static class to ensure only on Callout object is created */
@@ -26,6 +27,7 @@ public class Callout {
 	timer = Machine.getTimer(0);
 	timer.setHandler(new CalloutInterruptHandler());
 	currentTime = 0;
+	calloutsPerformed = 0;
 	spinlock = new SpinLock("spinlock");
 	timer.start();
     }
@@ -56,19 +58,33 @@ public class Callout {
 	
 	updateCurrentTime();
 	Collections.sort(runnables, ScheduledRunnableComparator.getInstance());
-	Iterator<ScheduledRunnable> iterator = runnables.iterator();
+	ListIterator<ScheduledRunnable> iterator = runnables.listIterator(runnables.size());
 	
-	while (iterator.hasNext()) {
-	    ScheduledRunnable runnable = iterator.next();
+	List<ScheduledRunnable> readyToBeRun = new ArrayList<>();
+	
+	while (iterator.hasPrevious()) {
+	    ScheduledRunnable runnable = iterator.previous();
 	    if (runnable.isReadyToRun(currentTime)) {
 		iterator.remove();
-		runnable.run();
+		readyToBeRun.add(runnable);
 	    }
 	    else
 		break;
 	}
 	
 	spinlock.release();
+	
+	for (ScheduledRunnable runnable : readyToBeRun) {
+	    runnable.run();
+	}
+    }
+    
+    public void incrementCalloutsPerformed() {
+	calloutsPerformed++;
+    }
+    
+    public int getCalloutsPerformed() {
+	return calloutsPerformed;
     }
     
     public Timer getTimer() {

@@ -10,7 +10,7 @@ public class ScheduledRunnableComparator implements Comparator<ScheduledRunnable
     
     @Override
     public int compare(ScheduledRunnable o1, ScheduledRunnable o2) {
-	return Long.compare(o1.getScheduledTime(), o2.getScheduledTime());
+	return Long.compare(o2.getScheduledTime(), o1.getScheduledTime());
     }
 
     public static ScheduledRunnableComparator getInstance() {
