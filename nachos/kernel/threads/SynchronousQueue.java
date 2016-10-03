@@ -35,6 +35,7 @@ public class SynchronousQueue<T> implements Queue<T> {
     private Condition itemTaken;
     private Condition itemAdded;
     private int awaitingTake;
+    private int awaitingPut;
     private T lastRemoved;
     
     /**
@@ -46,6 +47,7 @@ public class SynchronousQueue<T> implements Queue<T> {
 	itemTaken = new Condition("Item taken", lock);
 	itemAdded = new Condition("Item added", lock);
 	awaitingTake = 0;
+	awaitingPut = 0;
 	lastRemoved = null;
     }
 
@@ -66,6 +68,7 @@ public class SynchronousQueue<T> implements Queue<T> {
 	    itemTaken.await();
 	}
 	
+	awaitingPut--;
 	lock.release();
 	
 	return offered;
@@ -81,6 +84,7 @@ public class SynchronousQueue<T> implements Queue<T> {
         lock.acquire();
         T obj = null;
         
+        awaitingPut++;
         while (awaitingTake == 0) {
             itemAdded.await();
         }
@@ -109,7 +113,12 @@ public class SynchronousQueue<T> implements Queue<T> {
 	boolean success = false;
 	lock.acquire();
 	awaitingTake++;
-	itemAdded.signal();
+	if(awaitingPut > 0){
+	    itemAdded.signal();
+	}else{
+	    return false;
+	}
+	awaitingPut--;
 	if(lastRemoved == e){
 	    success = true;
 	}
