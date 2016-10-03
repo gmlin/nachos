@@ -6,8 +6,8 @@ Overview
 I kept a List that holds the ScheduledRunnable objects that are pending.
 ScheduledRunnable is a wrapper over a Runnable object that includes the
 time that it is scheduled to be run. I disabled interrupts when adding
-the ScheduledRunnable to the List. This is sufficient for single threaded
-code but not for multithreaded code because other threads can interfere.
+the ScheduledRunnable to the List. This is sufficient for a single CPU
+but not for multiple CPUs because other CPUs' threads can interfere.
 The timer for Callout is provided a custom interrupt handler which
 increments the system time as well as runs ScheduledRunnable objects
 that are ready to be run. In the performCallouts() method, I get the
@@ -55,6 +55,3 @@ tried to minimize the work done in critical sections to increase performance.
 For example, instead of calling run() on the ScheduledRunnable objects while the
 SpinLock is held, I added the ScheduledRunnable objects that are ready to another
 List and called run() on them after the SpinLock is released.
-
-
-.

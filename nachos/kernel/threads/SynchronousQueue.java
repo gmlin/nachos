@@ -1,5 +1,8 @@
 package nachos.kernel.threads;
 
+import nachos.kernel.Nachos;
+import nachos.machine.NachosThread;
+import nachos.util.FIFOQueue;
 import nachos.util.Queue;
 
 /**
@@ -27,10 +30,24 @@ import nachos.util.Queue;
 
 public class SynchronousQueue<T> implements Queue<T> {
 
+    private Queue<T> queue;
+    private Lock lock;
+    private Condition itemTaken;
+    private Condition itemAdded;
+    private int awaitingTake;
+    private T lastRemoved;
+    
     /**
      * Initialize a new SynchronousQueue object.
      */
-    public SynchronousQueue() { }
+    public SynchronousQueue() {
+	queue = new FIFOQueue<T>();
+	lock = new Lock("Queue lock");
+	itemTaken = new Condition("Item taken", lock);
+	itemAdded = new Condition("Item added", lock);
+	awaitingTake = 0;
+	lastRemoved = null;
+    }
 
     /**
      * Adds the specified object to this queue,
@@ -38,7 +55,21 @@ public class SynchronousQueue<T> implements Queue<T> {
      *
      * @param obj The object to add.
      */
-    public boolean put(T obj) { return false; }
+    public boolean put(T obj) { 
+	lock.acquire();
+	boolean offered = queue.offer(obj);
+	
+	awaitingTake++;
+	itemAdded.signal();
+	
+	while (lastRemoved != obj) {
+	    itemTaken.await();
+	}
+	
+	lock.release();
+	
+	return offered;
+    }
 
     /**
      * Retrieves and removes the head of this queue,
@@ -46,7 +77,24 @@ public class SynchronousQueue<T> implements Queue<T> {
      *
      * @return the head of this queue.
      */
-    public T take() { return null; }
+    public T take() { 
+        lock.acquire();
+        T obj = null;
+        
+        while (awaitingTake == 0) {
+            itemAdded.await();
+        }
+
+        obj = queue.poll();
+        awaitingTake--;
+        lastRemoved = obj;
+        
+        itemTaken.broadcast();
+        
+        lock.release();
+        
+        return obj;
+    }
 
     /**
      * Adds an element to this queue, if there is a thread currently
@@ -66,7 +114,9 @@ public class SynchronousQueue<T> implements Queue<T> {
      * @return  the head of this queue, or null if no element is available.
      */
     @Override
-    public T poll() { return null; }
+    public T poll() { 
+	return null; 
+    }
     
     /**
      * Always returns null.
@@ -74,7 +124,9 @@ public class SynchronousQueue<T> implements Queue<T> {
      * @return  null
      */
     @Override
-    public T peek() { return null; }
+    public T peek() { 
+	return null; 
+    }
     
     /**
      * Always returns true.
@@ -82,7 +134,9 @@ public class SynchronousQueue<T> implements Queue<T> {
      * @return true
      */
     @Override
-    public boolean isEmpty() { return true; }
+    public boolean isEmpty() { 
+	return true;
+    }
 
     // The following methods are to be implemented for the second
     // part of the assignment.
