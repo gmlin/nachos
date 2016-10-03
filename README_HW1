@@ -47,7 +47,7 @@ to ensure that there is only instance. I also ensure thread safety when
 creating the singletons by using a static nested class to create an instance
 of Callout and ScheduledRunnableComparator. When adding to the List of
 ScheduledRunnable, use binary search to find the insertion point. This allows
-for O(log n) to keep the list sorted as opposed to O(n log n) sorting after
+for O(n) insertion to keep the list sorted as opposed to O(n log n) sorting after
 each insertion. The ScheduledRunnable objects are sorted in reverse order
 so that it only takes O(1) to remove the earliest scheduled Runnable from the
 List as opposed to O(N) if I were to remove from the front of the List. I also
