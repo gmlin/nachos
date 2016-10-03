@@ -46,6 +46,7 @@ public class Callout {
 	ScheduledRunnable scheduledRunnable = new ScheduledRunnable(runnable, currentTime + ticksFromNow);
 	spinlock.acquire();
 	
+	// Collections.binarySearch returns -(where it would be inserted + 1) if not found
 	int insertIndex = Collections.binarySearch(runnables, scheduledRunnable, ScheduledRunnableComparator.getInstance());
 	if (insertIndex < 0) {
 	    insertIndex = -(insertIndex + 1);
