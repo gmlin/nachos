@@ -105,7 +105,17 @@ public class SynchronousQueue<T> implements Queue<T> {
      * was not added.
      */
     @Override
-    public boolean offer(T e) { return false; }
+    public boolean offer(T e) {
+	boolean success = false;
+	lock.acquire();
+	awaitingTake++;
+	itemAdded.signal();
+	if(lastRemoved == e){
+	    success = true;
+	}
+	lock.release();
+	return success; 
+    }
     
     /**
      * Retrieves and removes the head of this queue, if another thread
@@ -115,7 +125,16 @@ public class SynchronousQueue<T> implements Queue<T> {
      */
     @Override
     public T poll() { 
-	return null; 
+	T obj = null;
+	lock.acquire();
+	if(awaitingTake > 0){
+	    obj = queue.poll();
+	}
+	awaitingTake--;
+        lastRemoved = obj;
+        itemTaken.broadcast();
+	lock.release();
+	return obj; 
     }
     
     /**
