@@ -33,6 +33,8 @@ public class SynchronousQueue<T> implements Queue<T> {
 
     private Queue<T> queue;
     private Lock lock;
+    private Lock putLock;
+    private Lock takeLock;
     private Condition itemTaken;
     private Condition itemAdded;
     private int awaitingTake;
@@ -45,6 +47,8 @@ public class SynchronousQueue<T> implements Queue<T> {
     public SynchronousQueue() {
 	queue = new FIFOQueue<T>();
 	lock = new Lock("Queue lock");
+	putLock = new Lock("Put lock");
+	takeLock = new Lock("Take lock");
 	itemTaken = new Condition("Item taken", lock);
 	itemAdded = new Condition("Item added", lock);
 	awaitingTake = 0;
@@ -60,6 +64,8 @@ public class SynchronousQueue<T> implements Queue<T> {
      */
     public boolean put(T obj) {
 	NachosThread currentThread = NachosThread.currentThread();
+	
+	putLock.acquire();
 	
 	lock.acquire();
 	
@@ -83,6 +89,8 @@ public class SynchronousQueue<T> implements Queue<T> {
 	awaitingPut--;
 	lock.release();
 	
+	putLock.release();
+	
 	return offered;
     }
 
@@ -94,6 +102,8 @@ public class SynchronousQueue<T> implements Queue<T> {
      */
     public T take() { 
 	NachosThread currentThread = NachosThread.currentThread();
+	
+	takeLock.acquire();
 	
         lock.acquire();
         T obj = null;
@@ -116,7 +126,7 @@ public class SynchronousQueue<T> implements Queue<T> {
         itemTaken.broadcast();
         
         lock.release();
-        
+        takeLock.release();
         return obj;
     }
 
