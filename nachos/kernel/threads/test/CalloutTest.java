@@ -27,8 +27,8 @@ public class CalloutTest {
 		    Nachos.scheduler.sleepThread(ticks);
 		    
 		    lock.acquire();
-		    condition.signal();
 		    callout.incrementCalloutsPerformed();
+		    condition.signal();
 		    lock.release();
 		    
 		    Nachos.scheduler.finishThread();

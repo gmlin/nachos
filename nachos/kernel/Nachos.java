@@ -37,6 +37,7 @@ import nachos.kernel.userprog.ExceptionHandler;
 import nachos.kernel.filesys.FileSystem;
 import nachos.kernel.threads.test.CalloutTest;
 import nachos.kernel.threads.test.SMPTest;
+import nachos.kernel.threads.test.SynchronousQueueTest;
 import nachos.kernel.threads.test.ThreadTest;
 import nachos.kernel.userprog.test.ProgTest;
 import nachos.kernel.filesys.test.FileSystemTest;
@@ -124,6 +125,8 @@ public class Nachos implements Runnable {
 	    ConsoleTest.start();
 	if(options.CALLOUT_TEST)
 	    CalloutTest.start();
+	if(options.SYNCHRONOUS_QUEUE_TEST)
+	    SynchronousQueueTest.start();
 	
 	// Terminate the first thread, its job is done.
 	// Alternatively, you could give this thread the responsibility

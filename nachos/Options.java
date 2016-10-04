@@ -181,7 +181,9 @@ public class Options {
     /** Should we run the network test? */
     public boolean NETWORK_TEST = false;
     
-    public boolean CALLOUT_TEST = true;
+    public boolean CALLOUT_TEST = false;
+    
+    public boolean SYNCHRONOUS_QUEUE_TEST = true;
     
     public Options(String[] args) {
 	argList = Arrays.asList(args);
@@ -257,6 +259,14 @@ public class Options {
 		        	CALLOUT_TEST = true;
 		            }
 		         }),
+		new Spec("-sq", // enable synchronous queue test
+			new Class[] { },
+			null,
+			new Options.Action() {
+		    	    public void processOption(String flag, Object[] params) {
+		    		SYNCHRONOUS_QUEUE_TEST = true;
+		    	    }
+			}),
 		new Spec("-tl",  // set simulation time limit
 			 new Class[] {Integer.class},
 			 "Usage: -tl <ticks>",

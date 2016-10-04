@@ -1,5 +1,6 @@
 package nachos.util;
 
+import nachos.Debug;
 import nachos.kernel.Nachos;
 import nachos.kernel.threads.Condition;
 import nachos.kernel.threads.Lock;
@@ -57,16 +58,27 @@ public class SynchronousQueue<T> implements Queue<T> {
      *
      * @param obj The object to add.
      */
-    public boolean put(T obj) { 
+    public boolean put(T obj) {
+	NachosThread currentThread = NachosThread.currentThread();
+	
 	lock.acquire();
+	
+	Debug.println('+', currentThread.name + " is putting in " + obj.toString());
+	
 	boolean offered = queue.offer(obj);
 	
 	awaitingTake++;
 	itemAdded.signal();
 	
 	while (lastRemoved != obj) {
+	    if (lastRemoved == null)
+		System.out.println(currentThread.name + " lastRemoved = null");
+	    else
+		System.out.println(currentThread.name + " lastRemoved = " + lastRemoved.toString());
 	    itemTaken.await();
 	}
+	
+	Debug.println('+', currentThread.name + "'s object has been taken");
 	
 	awaitingPut--;
 	lock.release();
@@ -81,15 +93,23 @@ public class SynchronousQueue<T> implements Queue<T> {
      * @return the head of this queue.
      */
     public T take() { 
+	NachosThread currentThread = NachosThread.currentThread();
+	
         lock.acquire();
         T obj = null;
         
+	Debug.println('+', currentThread.name + " is looking for something to take");
+        
         awaitingPut++;
         while (awaitingTake == 0) {
+            System.out.println(currentThread.name + " awaitingTake = " + awaitingTake);
             itemAdded.await();
         }
 
         obj = queue.poll();
+
+	Debug.println('+', currentThread.name + " took " + obj.toString());
+        
         awaitingTake--;
         lastRemoved = obj;
         
