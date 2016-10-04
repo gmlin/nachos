@@ -77,10 +77,6 @@ public class SynchronousQueue<T> implements Queue<T> {
 	itemAdded.signal();
 	
 	while (lastRemoved != obj) {
-	    if (lastRemoved == null)
-		System.out.println(currentThread.name + " lastRemoved = null");
-	    else
-		System.out.println(currentThread.name + " lastRemoved = " + lastRemoved.toString());
 	    itemTaken.await();
 	}
 	
@@ -112,7 +108,6 @@ public class SynchronousQueue<T> implements Queue<T> {
         
         awaitingPut++;
         while (awaitingTake == 0) {
-            System.out.println(currentThread.name + " awaitingTake = " + awaitingTake);
             itemAdded.await();
         }
 

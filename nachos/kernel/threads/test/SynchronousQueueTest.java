@@ -33,16 +33,18 @@ public class SynchronousQueueTest {
     public static void start() {
 	SynchronousQueue<Integer> queue = new SynchronousQueue<>();
 	
-	Random random = new Random();
-	
 	runTakeThread("Thread 1", queue);
 	runTakeThread("Thread 2", queue);
-	runPutThread("Thread 3", queue, random.nextInt(1000));
-	runPutThread("Thread 4", queue, random.nextInt(1000));
+	runPutThread("Thread 3", queue, 1);
+	runPutThread("Thread 4", queue, 2);
 	runTakeThread("Thread 5", queue);
-	runPutThread("Thread 6", queue, random.nextInt(1000));
+	runPutThread("Thread 6", queue, 3);
 	runTakeThread("Thread 7", queue);
-	runPutThread("Thread 8", queue, random.nextInt(1000));
+	runPutThread("Thread 8", queue, 4);
+	runPutThread("Thread 9", queue, 5);
+	runPutThread("Thread 10", queue, 6);
+	runTakeThread("Thread 11", queue);
+	runTakeThread("Thread 12", queue);
     }
     
 }
