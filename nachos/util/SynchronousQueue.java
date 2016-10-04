@@ -1,9 +1,9 @@
-package nachos.kernel.threads;
+package nachos.util;
 
 import nachos.kernel.Nachos;
+import nachos.kernel.threads.Condition;
+import nachos.kernel.threads.Lock;
 import nachos.machine.NachosThread;
-import nachos.util.FIFOQueue;
-import nachos.util.Queue;
 
 /**
  * This class is patterned after the SynchronousQueue class
