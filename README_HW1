@@ -30,13 +30,17 @@ Instructions
 
 Compiling the program is easily handled through Eclipse. Execute Nachos
 to start the program. Include "-d 0" to view the debug statements that
-are included.
+are included. To run the tests with multiple CPUs, append "-ncpu N" 
+where N is the number of CPUs to use.
+
 
 # Part 1
 
 To run the test for part 1, simply append "-ct" to the run configuration.
-To run the test with multiple CPUs, append "-ncpu N" where N is the number
-of CPUs to use.
+
+# Part 2
+
+To run the test for part 2, simply append "-sq" to the run configuration.
 
 Assumptions/Design
 ##################

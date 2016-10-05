@@ -2,7 +2,9 @@ package nachos.kernel.threads.test;
 
 import java.util.Random;
 
+import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.kernel.threads.Lock;
 import nachos.machine.NachosThread;
 import nachos.util.SynchronousQueue;
 
@@ -66,16 +68,16 @@ public class SynchronousQueueTest {
 	runPutThread("Thread 10", queue, 6);
 	runTakeThread("Thread 11", queue);
 	runTakeThread("Thread 12", queue);
+
+	runOfferThread("Thread 13", queue, 7);
+	runTakeThread("Thread 14", queue);
+	runTakeThread("Thread 15", queue);
+	runOfferThread("Thread 16", queue, 8);
 	
-//	runTakeThread("Thread 1", queue);
-//	runTakeThread("Thread 2", queue);
-//	runOfferThread("Thread 3", queue, 100);
-//	runOfferThread("Thread 4", queue, 200);
-	
-//	runPutThread("Thread 3", queue, 100);
-//	runPutThread("Thread 4", queue, 200);
-//	runPollThread("Thread 1", queue);
-//	runPollThread("Thread 2", queue);
+	runPollThread("Thread 17", queue);
+	runPutThread("Thread 18", queue, 9);
+	runPutThread("Thread 19", queue, 10);
+	runPollThread("Thread 20", queue);
     }
     
 }

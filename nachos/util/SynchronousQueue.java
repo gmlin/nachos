@@ -143,14 +143,14 @@ public class SynchronousQueue<T> implements Queue<T> {
 	
 	if(awaitingPut > 0){ 
 	    awaitingPut--;
-	    Debug.println('+', currentThread.name + " is putting in " + e.toString());
+	    Debug.println('0', currentThread.name + " is putting in " + e.toString());
 	    queue.offer(e);
 	    itemAdded.signal();  
 	}else{
 	    awaitingTake--;
 	    lock.release();
 	    putLock.release();
-	    Debug.println('+', currentThread.name + " has no one to recieve it and left");
+	    Debug.println('0', currentThread.name + " has no one to recieve it and left");
 	    return false;
 	}
 	if(lastRemoved == e){
@@ -177,12 +177,12 @@ public class SynchronousQueue<T> implements Queue<T> {
 	    obj = queue.poll();
 	}
 	else{
-	    Debug.println('+', currentThread.name + " had nothing to take and left");
+	    Debug.println('0', currentThread.name + " had nothing to take and left");
 	    lock.release();
 	    takeLock.release();
 	    return null;
 	}
-	Debug.println('+', currentThread.name + " took " + obj.toString());
+	Debug.println('0', currentThread.name + " took " + obj.toString());
 	awaitingTake--;
         lastRemoved = obj;
         itemTaken.broadcast();

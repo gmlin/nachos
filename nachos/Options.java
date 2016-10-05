@@ -183,7 +183,7 @@ public class Options {
     
     public boolean CALLOUT_TEST = false;
     
-    public boolean SYNCHRONOUS_QUEUE_TEST = true;
+    public boolean SYNCHRONOUS_QUEUE_TEST = false;
     
     public Options(String[] args) {
 	argList = Arrays.asList(args);
