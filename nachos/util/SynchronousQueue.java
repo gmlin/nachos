@@ -69,7 +69,7 @@ public class SynchronousQueue<T> implements Queue<T> {
 	
 	lock.acquire();
 	
-	Debug.println('+', currentThread.name + " is putting in " + obj.toString());
+	Debug.println('0', currentThread.name + " is putting in " + obj.toString());
 	
 	boolean offered = queue.offer(obj);
 	
@@ -80,7 +80,7 @@ public class SynchronousQueue<T> implements Queue<T> {
 	    itemTaken.await();
 	}
 	
-	Debug.println('+', currentThread.name + "'s object has been taken");
+	Debug.println('0', currentThread.name + "'s object has been taken");
 	
 	awaitingPut--;
 	lock.release();
@@ -104,7 +104,7 @@ public class SynchronousQueue<T> implements Queue<T> {
         lock.acquire();
         T obj = null;
         
-	Debug.println('+', currentThread.name + " is looking for something to take");
+	Debug.println('0', currentThread.name + " is looking for something to take");
         
         awaitingPut++;
         while (awaitingTake == 0) {
@@ -113,7 +113,7 @@ public class SynchronousQueue<T> implements Queue<T> {
 
         obj = queue.poll();
 
-	Debug.println('+', currentThread.name + " took " + obj.toString());
+	Debug.println('0', currentThread.name + " took " + obj.toString());
         
         awaitingTake--;
         lastRemoved = obj;

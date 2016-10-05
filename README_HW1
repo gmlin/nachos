@@ -29,7 +29,8 @@ Instructions
 ############
 
 Compiling the program is easily handled through Eclipse. Execute Nachos
-to start the program.
+to start the program. Include "-d 0" to view the debug statements that
+are included.
 
 # Part 1
 
