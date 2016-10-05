@@ -29,6 +29,27 @@ public class SynchronousQueueTest {
 	});
 	Nachos.scheduler.readyToRun(thread);
     }
+    private static <T> void runOfferThread(String name, SynchronousQueue<T> queue, T obj) {
+	NachosThread thread = new NachosThread(name, new Runnable() {
+	    @Override
+	    public void run() {
+		queue.offer(obj);
+	    	Nachos.scheduler.finishThread();
+	    }
+	});
+	Nachos.scheduler.readyToRun(thread);
+    }
+    
+    private static <T> void runPollThread(String name, SynchronousQueue<T> queue) {
+	NachosThread thread = new NachosThread(name, new Runnable() {
+	    @Override
+	    public void run() {
+		queue.poll();
+	    	Nachos.scheduler.finishThread();
+	    }
+	});
+	Nachos.scheduler.readyToRun(thread);
+    }
     
     public static void start() {
 	SynchronousQueue<Integer> queue = new SynchronousQueue<>();
@@ -45,6 +66,16 @@ public class SynchronousQueueTest {
 	runPutThread("Thread 10", queue, 6);
 	runTakeThread("Thread 11", queue);
 	runTakeThread("Thread 12", queue);
+	
+//	runTakeThread("Thread 1", queue);
+//	runTakeThread("Thread 2", queue);
+//	runOfferThread("Thread 3", queue, 100);
+//	runOfferThread("Thread 4", queue, 200);
+	
+//	runPutThread("Thread 3", queue, 100);
+//	runPutThread("Thread 4", queue, 200);
+//	runPollThread("Thread 1", queue);
+//	runPollThread("Thread 2", queue);
     }
     
 }

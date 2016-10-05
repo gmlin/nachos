@@ -135,19 +135,29 @@ public class SynchronousQueue<T> implements Queue<T> {
      */
     @Override
     public boolean offer(T e) {
+	NachosThread currentThread = NachosThread.currentThread();
+	putLock.acquire();
 	boolean success = false;
 	lock.acquire();
 	awaitingTake++;
-	if(awaitingPut > 0){
-	    itemAdded.signal();
+	
+	if(awaitingPut > 0){ 
+	    awaitingPut--;
+	    Debug.println('+', currentThread.name + " is putting in " + e.toString());
+	    queue.offer(e);
+	    itemAdded.signal();  
 	}else{
+	    awaitingTake--;
+	    lock.release();
+	    putLock.release();
+	    Debug.println('+', currentThread.name + " has no one to recieve it and left");
 	    return false;
 	}
-	awaitingPut--;
 	if(lastRemoved == e){
 	    success = true;
 	}
 	lock.release();
+	putLock.release();
 	return success; 
     }
     
@@ -159,15 +169,25 @@ public class SynchronousQueue<T> implements Queue<T> {
      */
     @Override
     public T poll() { 
+	NachosThread currentThread = NachosThread.currentThread();
+	takeLock.acquire();
 	T obj = null;
 	lock.acquire();
 	if(awaitingTake > 0){
 	    obj = queue.poll();
 	}
+	else{
+	    Debug.println('+', currentThread.name + " had nothing to take and left");
+	    lock.release();
+	    takeLock.release();
+	    return null;
+	}
+	Debug.println('+', currentThread.name + " took " + obj.toString());
 	awaitingTake--;
         lastRemoved = obj;
         itemTaken.broadcast();
 	lock.release();
+	takeLock.release();
 	return obj; 
     }
     
