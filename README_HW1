@@ -25,6 +25,15 @@ calls await() to temporarily relinquish the Lock until notify() is called
 by another thread. Once all the threads finish running, the while loop is
 complete and the Timer is stopped.
 
+# Part 2
+
+A thread calling put() waits for a thread that calls take() and 
+vice-versa. They communicate through two condition variables which
+uses the same lock. offer() and poll() are similar, except they do
+not wait for a thread to take or put an object into the queue. They
+instead return null if there is no thread with an object in the queue
+or no thread that is waiting to take an object.
+
 Instructions
 ############
 
@@ -60,3 +69,19 @@ tried to minimize the work done in critical sections to increase performance.
 For example, instead of calling run() on the ScheduledRunnable objects while the
 SpinLock is held, I added the ScheduledRunnable objects that are ready to another
 List and called run() on them after the SpinLock is released.
+
+# Part 2
+
+For the SynchronousQueue, we used a Queue to store the objects as well as
+variables to keep track of how many threads are awaiting a put, awaiting a
+take, as well as the last object to be removed from the Queue. We use two
+condition variables, itemTaken and itemAdded to keep track of when items
+are taken or added. For take(), it checks whether there's already threads
+waiting for its object to be taken. If so, it takes an object and broadcasts 
+to all threads waiting for its object to be taken. Those objects then check 
+if the item that was most recently removed was its item. If it is, it returns, 
+otherwise, it continues waiting. For put(), it checks if there's threads
+waiting for an object to take. If so, it puts its object into the queue and signals
+a waiting thread to take its object. For multiple CPU, we add another set of Locks
+to put() and take() to make sure that only one thread is calling put() or take()
+at a given time.
