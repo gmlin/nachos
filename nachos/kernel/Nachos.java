@@ -35,6 +35,7 @@ import nachos.kernel.devices.test.SerialTest;
 import nachos.kernel.threads.Callout;
 import nachos.kernel.threads.Scheduler;
 import nachos.kernel.userprog.ExceptionHandler;
+import nachos.kernel.userprog.MemoryManager;
 import nachos.kernel.filesys.FileSystem;
 import nachos.kernel.threads.test.CalloutTest;
 import nachos.kernel.threads.test.SMPTest;
@@ -71,6 +72,8 @@ public class Nachos implements Runnable {
     public static SerialDriver serialDriver;
 
     public static Callout callout;
+    
+    public static MemoryManager memoryManager;
     
     /**
      * 	Nachos initialization -- performed by first Nachos thread.
@@ -110,6 +113,8 @@ public class Nachos implements Runnable {
 	}
 	
 	callout = new Callout(Machine.getTimer(0));
+	
+	memoryManager = new MemoryManager();
 
 	// Run test/demo programs, according to the supplied options.
 	// These will typically create additional threads to do the actual
