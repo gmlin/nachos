@@ -90,7 +90,10 @@ public class Syscall {
      *
      * @param name The name of the file to execute.
      */
-    public static int exec(String name) {return 0;}
+    public static int exec(String name) {
+	Debug.println('+', name + " is executing");
+	return 0;
+    }
 
     /**
      * Wait for the user program specified by "id" to finish, and
@@ -99,7 +102,10 @@ public class Syscall {
      * @param id The "space ID" of the program to wait for.
      * @return the exit status of the specified program.
      */
-    public static int join(int id) {return 0;}
+    public static int join(int id) {
+	Debug.println('+', id + " is joining");
+	return 0;
+    }
 
 
     /* File system operations: Create, Open, Read, Write, Close
@@ -153,6 +159,7 @@ public class Syscall {
      * @param id The OpenFileId of the file to which to write the data.
      */
     public static void write(byte buffer[], int size, int id) {
+	Debug.println('+', "Writing");
 	if (id == ConsoleOutput) {
 	    for(int i = 0; i < size; i++) {
 		Nachos.consoleDriver.putChar((char)buffer[i]);
@@ -172,7 +179,10 @@ public class Syscall {
      * @param id The OpenFileId of the file from which to read the data.
      * @return The actual number of bytes read.
      */
-    public static int read(byte buffer[], int size, int id) {return 0;}
+    public static int read(byte buffer[], int size, int id) {
+	Debug.println('+', "Reading");
+	return 0;
+    }
 
     /**
      * Close the file, we're done reading and writing to it.
@@ -194,12 +204,16 @@ public class Syscall {
      * @param func The user address of the procedure to be run by the
      * new thread.
      */
-    public static void fork(int func) {}
+    public static void fork(int func) {
+	Debug.println('+', "Forking " + func);
+    }
 
     /**
      * Yield the CPU to another runnable thread, whether in this address space 
      * or not. 
      */
-    public static void yield() {}
+    public static void yield() {
+	Debug.println('+', "Yielding");
+    }
 
 }
