@@ -204,6 +204,12 @@ public class AddrSpace {
       return page * Machine.PageSize;
   }
   
+  public void exit() {
+      MemoryManager memoryManager = Nachos.memoryManager;
+      for (int i = 0; i < pageTable.length; i++)
+	  memoryManager.freePage(pageTable[i].physicalPage);
+  }
+  
   private int translate(int virtualAddr) {
       int virtualPage = virtualAddr / Machine.PageSize;
       int offset = virtualAddr % Machine.PageSize;
@@ -212,4 +218,5 @@ public class AddrSpace {
       
       return physicalAddr;
   }
+
 }

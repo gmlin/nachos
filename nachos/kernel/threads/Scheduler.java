@@ -16,6 +16,7 @@ package nachos.kernel.threads;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.kernel.userprog.UserThread;
 import nachos.machine.CPU;
 import nachos.machine.Machine;
 import nachos.machine.NachosThread;
@@ -364,6 +365,8 @@ public class Scheduler {
 	mutex.acquire();
 	if (threadToBeDestroyed != null) {
 	    threadToBeDestroyed.destroy();
+	    if (threadToBeDestroyed instanceof UserThread)
+		((UserThread)threadToBeDestroyed).space.exit();
 	    threadToBeDestroyed = null;
 	}
 	threadToBeDestroyed = currentThread;
