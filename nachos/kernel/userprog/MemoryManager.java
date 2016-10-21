@@ -3,6 +3,7 @@ package nachos.kernel.userprog;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import nachos.Debug;
 import nachos.kernel.threads.Lock;
 import nachos.machine.Machine;
 
@@ -18,14 +19,19 @@ public class MemoryManager {
 	lock = new Lock("Memory manager lock");
     }
     
-    /* Return a freed page or the next unused page. If no free/unused pages, return -1 */
+    /* Return a freed page or the next unallocated page. Returns -1 if ran out of memory. */
     public int getUnusedPage() {
 	int pageToReturn = -1;
+	
 	lock.acquire();
-	if (freedPages.isEmpty() && nextPageToAllocate < Machine.NumPhysPages)
-	    pageToReturn = nextPageToAllocate++;
+	if (freedPages.isEmpty()) {
+	    Debug.ASSERT((nextPageToAllocate <= Machine.NumPhysPages), "Memory manager: ran out of memory");
+	    if (nextPageToAllocate < Machine.NumPhysPages)
+		pageToReturn = nextPageToAllocate++;
+	}
 	else
 	    pageToReturn = freedPages.pop();
+	
 	lock.release();
 	
 	return pageToReturn;
@@ -35,5 +41,9 @@ public class MemoryManager {
 	lock.acquire();
 	freedPages.push(page);
 	lock.release();
+    }
+    
+    public int getPageMemoryIndex(int page) {
+	return page * Machine.PageSize;
     }
 }

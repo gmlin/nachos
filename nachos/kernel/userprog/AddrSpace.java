@@ -25,6 +25,7 @@ import nachos.machine.MIPS;
 import nachos.machine.Machine;
 import nachos.machine.TranslationEntry;
 import nachos.noff.NoffHeader;
+import nachos.kernel.Nachos;
 import nachos.kernel.filesys.OpenFile;
 
 /**
@@ -95,12 +96,14 @@ public class AddrSpace {
     Debug.println('a', "Initializing address space, numPages=" 
 		+ numPages + ", size=" + size);
 
+    MemoryManager memoryManager = Nachos.memoryManager;
+    
     // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
     for (int i = 0; i < numPages; i++) {
       pageTable[i] = new TranslationEntry();
       pageTable[i].virtualPage = i; // for now, virtual page# = phys page#
-      pageTable[i].physicalPage = i;
+      pageTable[i].physicalPage = memoryManager.getUnusedPage();
       pageTable[i].valid = true;
       pageTable[i].use = false;
       pageTable[i].dirty = false;
@@ -111,8 +114,8 @@ public class AddrSpace {
     
     // Zero out the entire address space, to zero the uninitialized data 
     // segment and the stack segment.
-    for(int i = 0; i < size; i++)
-	Machine.mainMemory[i] = (byte)0;
+    for(int i = 0; i < pageTable.length; i++)
+	Machine.mainMemory[memoryManager.getPageMemoryIndex(pageTable[i].physicalPage)] = (byte)0;
 
     // then, copy in the code and data segments into memory
     if (noffH.code.size > 0) {
