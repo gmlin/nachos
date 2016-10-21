@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import nachos.machine.CPU;
-import nachos.machine.Machine;
 import nachos.machine.Timer;
 
 public class Callout {
@@ -17,14 +16,9 @@ public class Callout {
     private int calloutsPerformed;
     private SpinLock spinlock;
     
-    /** Nested static class to ensure only on Callout object is created */
-    private static class CalloutInitializer {
-	private static final Callout INSTANCE = new Callout();
-    }
-    
-    private Callout() {
+    public Callout(Timer timer) {
 	runnables = new ArrayList<>();
-	timer = Machine.getTimer(0);
+	this.timer = timer;
 	timer.setHandler(new CalloutInterruptHandler());
 	currentTime = 0;
 	calloutsPerformed = 0;
@@ -97,9 +91,5 @@ public class Callout {
     
     public Timer getTimer() {
 	return timer;
-    }
-    
-    public static Callout getInstance() {
-	return CalloutInitializer.INSTANCE;
     }
 }

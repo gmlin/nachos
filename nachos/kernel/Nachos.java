@@ -32,6 +32,7 @@ import nachos.kernel.devices.SerialDriver;
 import nachos.kernel.devices.test.ConsoleTest;
 import nachos.kernel.devices.test.NetworkTest;
 import nachos.kernel.devices.test.SerialTest;
+import nachos.kernel.threads.Callout;
 import nachos.kernel.threads.Scheduler;
 import nachos.kernel.userprog.ExceptionHandler;
 import nachos.kernel.filesys.FileSystem;
@@ -69,6 +70,8 @@ public class Nachos implements Runnable {
     /** Access to serial ports. */
     public static SerialDriver serialDriver;
 
+    public static Callout callout;
+    
     /**
      * 	Nachos initialization -- performed by first Nachos thread.
      *	Initialize various subsystems, depending on configuration options.
@@ -105,6 +108,8 @@ public class Nachos implements Runnable {
 	    CPU cpu = Machine.getCPU(i);
 	    cpu.setCPUExceptionHandler(new ExceptionHandler());
 	}
+	
+	callout = new Callout(Machine.getTimer(0));
 
 	// Run test/demo programs, according to the supplied options.
 	// These will typically create additional threads to do the actual

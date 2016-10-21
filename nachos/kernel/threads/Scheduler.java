@@ -323,7 +323,7 @@ public class Scheduler {
     public void sleepThread(int ticks) {
 	NachosThread currentThread = NachosThread.currentThread();
 	Semaphore semaphore = new Semaphore("semaphore", 0);
-	Callout callout = Callout.getInstance();
+	Callout callout = Nachos.callout;
 	
 	Debug.println('0', "*** thread " + currentThread.name + " sleeping for " + ticks + " ticks" );
 	

@@ -14,7 +14,7 @@ public class CalloutTest {
     private static final int NUM_THREADS = 16;
     
     public static void start() {
-	Callout callout = Callout.getInstance();
+	Callout callout = Nachos.callout;
 	Random random = new Random();
 	Lock lock = new Lock("Lock");
 	Condition condition = new Condition("Threads finished", lock);
