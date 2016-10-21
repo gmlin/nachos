@@ -43,7 +43,4 @@ public class MemoryManager {
 	lock.release();
     }
     
-    public int getPageMemoryIndex(int page) {
-	return page * Machine.PageSize;
-    }
 }

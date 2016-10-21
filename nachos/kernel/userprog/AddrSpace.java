@@ -114,9 +114,11 @@ public class AddrSpace {
     
     // Zero out the entire address space, to zero the uninitialized data 
     // segment and the stack segment.
-    for(int i = 0; i < pageTable.length; i++)
-	Machine.mainMemory[memoryManager.getPageMemoryIndex(pageTable[i].physicalPage)] = (byte)0;
-
+    for(int i = 0; i < pageTable.length; i++) {
+	int physicalPageAddr = getPageAddr(pageTable[i].physicalPage);
+	for (int j = 0; j < Machine.PageSize; j++)
+	    Machine.mainMemory[physicalPageAddr + j] = (byte)0;
+    }
     // then, copy in the code and data segments into memory
     if (noffH.code.size > 0) {
       Debug.println('a', "Initializing code segment, at " +
@@ -124,7 +126,9 @@ public class AddrSpace {
 	    noffH.code.size);
 
       executable.seek(noffH.code.inFileAddr);
-      executable.read(Machine.mainMemory, noffH.code.virtualAddr, noffH.code.size);
+      
+      for (int i = 0; i < noffH.code.size; i++)
+	  executable.read(Machine.mainMemory, translate(noffH.code.virtualAddr + i), 1);
     }
 
     if (noffH.initData.size > 0) {
@@ -133,7 +137,9 @@ public class AddrSpace {
 	    noffH.initData.size);
 
       executable.seek(noffH.initData.inFileAddr);
-      executable.read(Machine.mainMemory, noffH.initData.virtualAddr, noffH.initData.size);
+      
+      for (int i = 0; i < noffH.initData.size; i++)
+	  executable.read(Machine.mainMemory, translate(noffH.initData.virtualAddr + i), 1);
     }
 
     return(0);
@@ -192,5 +198,18 @@ public class AddrSpace {
    */
   private long roundToPage(long size) {
     return(Machine.PageSize * ((size+(Machine.PageSize-1))/Machine.PageSize));
+  }
+  
+  public int getPageAddr(int page) {
+      return page * Machine.PageSize;
+  }
+  
+  private int translate(int virtualAddr) {
+      int virtualPage = virtualAddr / Machine.PageSize;
+      int offset = virtualAddr % Machine.PageSize;
+      int physicalPage = pageTable[virtualPage].physicalPage;
+      int physicalAddr = getPageAddr(physicalPage) + offset;
+      
+      return physicalAddr;
   }
 }
