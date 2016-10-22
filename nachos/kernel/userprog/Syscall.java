@@ -91,7 +91,9 @@ public class Syscall {
      * @param name The name of the file to execute.
      */
     public static int exec(String name) {
-	Debug.println('+', name + " is executing");
+	Debug.println('+', "exec(" + name + ")");
+	UserProgram program = new UserProgram("test/" + name);
+	program.start();
 	return 0;
     }
 

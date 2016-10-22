@@ -192,7 +192,30 @@ public class AddrSpace {
   public void restoreState() {
     CPU.setPageTable(pageTable);
   }
-
+  
+  public String readString(int virtualAddr) {
+      int virtualPage = getPage(virtualAddr);
+      int offset = getOffset(virtualAddr);
+      StringBuilder sb = new StringBuilder();
+      boolean done = false;
+      
+      while (!done) {
+	  for (int i = offset; i < Machine.PageSize; i++) {
+	      byte curr = getByteAt(virtualPage, i);
+	      if (curr == 0) {
+		  done = true;
+		  break;
+	      }
+	      else
+		  sb.append((char)curr);
+	  }
+	  offset = 0;
+	  virtualPage++;
+      }
+      
+      return sb.toString();
+  }
+  
   /**
    * Utility method for rounding up to a multiple of CPU.PageSize;
    */
@@ -202,6 +225,18 @@ public class AddrSpace {
   
   public int getPageAddr(int page) {
       return page * Machine.PageSize;
+  }
+  
+  public int getPage(int addr) {
+      return addr / Machine.PageSize;
+  }
+  
+  public int getOffset(int addr) {
+      return addr % Machine.PageSize;
+  }
+  
+  public byte getByteAt(int virtualPage, int offset) {
+      return Machine.mainMemory[translate(getPageAddr(virtualPage) + offset)];
   }
   
   public void exit() {
