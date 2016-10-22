@@ -69,7 +69,10 @@ public class UserProgram implements Runnable {
 	// by doing the syscall "exit"
     }
     
-    public void start() {
+    public int start() {
 	Nachos.scheduler.readyToRun(userThread);
+	userThread.space.addUserThread(userThread);
+	
+	return userThread.spaceId;
     }
 }

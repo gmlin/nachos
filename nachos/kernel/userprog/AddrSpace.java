@@ -19,6 +19,9 @@
 
 package nachos.kernel.userprog;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nachos.Debug;
 import nachos.machine.CPU;
 import nachos.machine.MIPS;
@@ -27,6 +30,7 @@ import nachos.machine.TranslationEntry;
 import nachos.noff.NoffHeader;
 import nachos.kernel.Nachos;
 import nachos.kernel.filesys.OpenFile;
+import nachos.kernel.threads.Lock;
 
 /**
  * This class manages "address spaces", which are the contexts in which
@@ -52,11 +56,19 @@ public class AddrSpace {
 
   /** Default size of the user stack area -- increase this as necessary! */
   private static final int UserStackSize = 1024;
+  
+  /** List of the UserThreads that use this address space */
+  private List<UserThread> userThreads;
 
+  private Lock lock;
+  
   /**
    * Create a new address space.
    */
-  public AddrSpace() { }
+  public AddrSpace() {
+      userThreads = new ArrayList<>();
+      lock = new Lock("UserThreads lock");
+  }
 
   /**
    * Load the program from a file "executable", and set everything
@@ -252,6 +264,18 @@ public class AddrSpace {
       int physicalAddr = getPageAddr(physicalPage) + offset;
       
       return physicalAddr;
+  }
+
+  public void addUserThread(UserThread thread) {
+    lock.acquire();
+    userThreads.add(thread);
+    lock.release();
+  }
+
+  public void removeUserThread(UserThread thread) {
+    lock.acquire();
+    userThreads.remove(thread);
+    lock.release();
   }
 
 }

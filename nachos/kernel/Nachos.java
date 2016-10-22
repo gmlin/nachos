@@ -36,6 +36,7 @@ import nachos.kernel.threads.Callout;
 import nachos.kernel.threads.Scheduler;
 import nachos.kernel.userprog.ExceptionHandler;
 import nachos.kernel.userprog.MemoryManager;
+import nachos.kernel.userprog.ProcessTable;
 import nachos.kernel.filesys.FileSystem;
 import nachos.kernel.threads.test.CalloutTest;
 import nachos.kernel.threads.test.SMPTest;
@@ -74,6 +75,8 @@ public class Nachos implements Runnable {
     public static Callout callout;
     
     public static MemoryManager memoryManager;
+    
+    public static ProcessTable processTable;
     
     /**
      * 	Nachos initialization -- performed by first Nachos thread.
@@ -115,6 +118,8 @@ public class Nachos implements Runnable {
 	callout = new Callout(Machine.getTimer(0));
 	
 	memoryManager = new MemoryManager();
+	
+	processTable = new ProcessTable();
 
 	// Run test/demo programs, according to the supplied options.
 	// These will typically create additional threads to do the actual

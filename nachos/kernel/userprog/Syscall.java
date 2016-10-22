@@ -8,6 +8,7 @@ package nachos.kernel.userprog;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.machine.CPU;
 import nachos.machine.NachosThread;
 import nachos.machine.Simulation;
 
@@ -93,8 +94,10 @@ public class Syscall {
     public static int exec(String name) {
 	Debug.println('+', "exec(" + name + ")");
 	UserProgram program = new UserProgram("test/" + name);
-	program.start();
-	return 0;
+	int spaceId = program.start();
+	CPU.writeRegister(2, spaceId);
+	
+	return spaceId;
     }
 
     /**
