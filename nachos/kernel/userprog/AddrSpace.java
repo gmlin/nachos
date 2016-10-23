@@ -118,9 +118,10 @@ public class AddrSpace {
     MemoryManager memoryManager = Nachos.memoryManager;
     
     // first, set up the translation 
-    TranslationEntry[] pageTable = getCurrentPageTable();
+    TranslationEntry[] pageTable = new TranslationEntry[numPages];
     
-    pageTable = new TranslationEntry[numPages];
+    threadPageTables.put((UserThread)NachosThread.currentThread(), pageTable);
+    
     for (int i = 0; i < numPages; i++) {
       pageTable[i] = new TranslationEntry();
       pageTable[i].virtualPage = i; // for now, virtual page# = phys page#
@@ -204,7 +205,9 @@ public class AddrSpace {
    *
    * For now, nothing!
    */
-  public void saveState() {}
+  public void saveState() {
+    Debug.println('+', NachosThread.currentThread().name + " saving state");
+  }
 
   /**
    * On a context switch, restore any machine state specific
@@ -213,6 +216,7 @@ public class AddrSpace {
    * For now, just tell the machine where to find the page table.
    */
   public void restoreState() {
+    Debug.println('+', NachosThread.currentThread().name + " restoring state");
     CPU.setPageTable(getCurrentPageTable());
   }
   
@@ -265,8 +269,8 @@ public class AddrSpace {
   public void exit() {
       MemoryManager memoryManager = Nachos.memoryManager;
       TranslationEntry[] pageTable = getCurrentPageTable();
-      for (int i = 0; i < pageTable.length; i++)
-	  memoryManager.freePage(pageTable[i].physicalPage);
+      //for (int i = 0; i < pageTable.length; i++)
+	  // memoryManager.freePage(pageTable[i].physicalPage);
   }
   
   private int translate(int virtualAddr) {

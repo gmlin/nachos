@@ -211,6 +211,8 @@ public class Syscall {
      */
     public static void fork(int func) {
 	Debug.println('+', "Forking " + func);
+	UserProgram forked = new UserProgram((UserThread)NachosThread.currentThread(), func);
+	forked.start();
     }
 
     /**
