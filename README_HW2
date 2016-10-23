@@ -1,0 +1,61 @@
+Description
+###########
+
+# Physical Memory Manager
+
+I created a simple physical memory manager class called MemoryManager.
+It keeps track of the next unallocated page number as well as a data
+structure to keep track of pages that are freed. When a AddrSpace asks
+for memory, the MemoryManager either removes a page number from
+freedPages and return it, or returns the next unallocated page number
+and increment. I also needed to use a lock for synchronization.
+
+# Virtual Address Translation
+
+For each TranslationEntry object, instead of setting the physicalPage
+field to the same value as the virtualPage field, I set it to the
+page number returned by MemoryManager getUnusedPage method. I also
+had to make sure that I was reading and writing to the correct addresses,
+taking note that at the end of a physical page, I need to jump to the
+next physical page associated with the next virtual page. I wrote a
+couple of methods such as the translate method which would make this
+easier.
+
+# Exec System Call
+
+To implement Exec, I realized that I would need a lot of the same code
+that was already in the ProgTest class. I refactored it into a class
+called UserProgram. I created a new constructor for UserPrograms
+started via Exec. I had to find a way to get the String at the pointer
+stored in the R4 register so I created a method in AddrSpace which
+returns the String stored at an address. By then, Exec was able to
+run the program specified by the function argument but it still had to
+return the SpaceId. For this, I created a class called ProcessTable
+which would associate a given AddrSpace with an assigned spaceId.
+The assigned spaceId would then be returned by Exec.
+
+# Fork System Call
+
+To implement Fork, I needed to allow multiple UserThreads to reside
+within a single AddrSpace. I could no longer use a single page table
+because the different UserThreads would use the same code and data
+segments but different stacks. I created a Map of UserThreads to
+page tables to map each UserThread to its page table. I updated all
+the existing methods to reflect this. To share the code and data
+segments, I created a basePageTable field which contains just the
+TranslationEntries for the code and data segment. I would then
+use this basePageTable as the base to construct page tables for
+subsequent UserThreads that use this AddrSpace. I added a new
+constructor to UserProgram which takes a UserThread and function
+pointer to create a UserProgram that shares the same AddrSpace
+and starts execution at the function's address. I added a boolean
+to keep track of whether the program is forked or not so the
+appropriate code is run in the run method. In the run method,
+the forked program updates the MIPS program counters so that
+when it executes, it will start at the function whose pointer
+was provided as the argument to Fork.
+
+# Exit System Call
+
+Instructions
+############
