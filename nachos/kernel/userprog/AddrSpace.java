@@ -20,12 +20,16 @@
 package nachos.kernel.userprog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nachos.Debug;
 import nachos.machine.CPU;
 import nachos.machine.MIPS;
 import nachos.machine.Machine;
+import nachos.machine.NachosThread;
 import nachos.machine.TranslationEntry;
 import nachos.noff.NoffHeader;
 import nachos.kernel.Nachos;
@@ -52,22 +56,25 @@ import nachos.kernel.threads.Lock;
 public class AddrSpace {
 
   /** Page table that describes a virtual-to-physical address mapping. */
-  private TranslationEntry pageTable[];
+  // private TranslationEntry pageTable[];
 
   /** Default size of the user stack area -- increase this as necessary! */
   private static final int UserStackSize = 1024;
   
-  /** List of the UserThreads that use this address space */
-  private List<UserThread> userThreads;
+  /** The page tables of the UserThreads that use this address space */
+  private Map<UserThread, TranslationEntry[]> threadPageTables;
 
+  /** The part of the page table common to all UserThreads in this address space */
+  private TranslationEntry[] basePageTable;
+  
   private Lock lock;
   
   /**
    * Create a new address space.
    */
   public AddrSpace() {
-      userThreads = new ArrayList<>();
-      lock = new Lock("UserThreads lock");
+      threadPageTables = new HashMap<>();
+      lock = new Lock("Page tables lock");
   }
 
   /**
@@ -111,6 +118,8 @@ public class AddrSpace {
     MemoryManager memoryManager = Nachos.memoryManager;
     
     // first, set up the translation 
+    TranslationEntry[] pageTable = getCurrentPageTable();
+    
     pageTable = new TranslationEntry[numPages];
     for (int i = 0; i < numPages; i++) {
       pageTable[i] = new TranslationEntry();
@@ -153,6 +162,8 @@ public class AddrSpace {
       for (int i = 0; i < noffH.initData.size; i++)
 	  executable.read(Machine.mainMemory, translate(noffH.initData.virtualAddr + i), 1);
     }
+    
+    basePageTable = Arrays.copyOf(pageTable, (int)size - UserStackSize);
 
     return(0);
   }
@@ -182,7 +193,7 @@ public class AddrSpace {
     // but that turns out to be to accomodate compiler convention that
     // assumes space in the current frame to save four argument registers.
     // That code rightly belongs in start.s and has been moved there.
-    int sp = pageTable.length * Machine.PageSize;
+    int sp = getCurrentPageTable().length * Machine.PageSize;
     CPU.writeRegister(MIPS.StackReg, sp);
     Debug.println('a', "Initializing stack register to " + sp);
   }
@@ -202,7 +213,7 @@ public class AddrSpace {
    * For now, just tell the machine where to find the page table.
    */
   public void restoreState() {
-    CPU.setPageTable(pageTable);
+    CPU.setPageTable(getCurrentPageTable());
   }
   
   public String readString(int virtualAddr) {
@@ -253,6 +264,7 @@ public class AddrSpace {
   
   public void exit() {
       MemoryManager memoryManager = Nachos.memoryManager;
+      TranslationEntry[] pageTable = getCurrentPageTable();
       for (int i = 0; i < pageTable.length; i++)
 	  memoryManager.freePage(pageTable[i].physicalPage);
   }
@@ -260,7 +272,7 @@ public class AddrSpace {
   private int translate(int virtualAddr) {
       int virtualPage = virtualAddr / Machine.PageSize;
       int offset = virtualAddr % Machine.PageSize;
-      int physicalPage = pageTable[virtualPage].physicalPage;
+      int physicalPage = getCurrentPageTable()[virtualPage].physicalPage;
       int physicalAddr = getPageAddr(physicalPage) + offset;
       
       return physicalAddr;
@@ -268,14 +280,17 @@ public class AddrSpace {
 
   public void addUserThread(UserThread thread) {
     lock.acquire();
-    userThreads.add(thread);
+    threadPageTables.put(thread, Arrays.copyOf(basePageTable, basePageTable.length + UserStackSize));
     lock.release();
   }
 
   public void removeUserThread(UserThread thread) {
     lock.acquire();
-    userThreads.remove(thread);
+    threadPageTables.remove(thread);
     lock.release();
   }
 
+  private TranslationEntry[] getCurrentPageTable() {
+      return threadPageTables.get(NachosThread.currentThread());
+  }
 }
