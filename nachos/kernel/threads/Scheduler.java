@@ -365,8 +365,6 @@ public class Scheduler {
 	mutex.acquire();
 	if (threadToBeDestroyed != null) {
 	    threadToBeDestroyed.destroy();
-	    if (threadToBeDestroyed instanceof UserThread)
-		((UserThread)threadToBeDestroyed).space.exit();
 	    threadToBeDestroyed = null;
 	}
 	threadToBeDestroyed = currentThread;

@@ -25,7 +25,7 @@ public class MemoryManager {
 	
 	lock.acquire();
 	if (freedPages.isEmpty()) {
-	    Debug.ASSERT((nextPageToAllocate <= Machine.NumPhysPages), "Memory manager: ran out of memory");
+	    Debug.ASSERT((nextPageToAllocate < Machine.NumPhysPages), "Memory manager: ran out of memory");
 	    if (nextPageToAllocate < Machine.NumPhysPages)
 		pageToReturn = nextPageToAllocate++;
 	}

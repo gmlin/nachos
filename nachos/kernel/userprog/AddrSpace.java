@@ -61,6 +61,8 @@ public class AddrSpace {
   /** Default size of the user stack area -- increase this as necessary! */
   private static final int UserStackSize = 1024;
   
+  private static final int NumStackPages = (int)Math.ceil((double)UserStackSize / Machine.PageSize);
+  
   /** The page tables of the UserThreads that use this address space */
   private Map<UserThread, TranslationEntry[]> threadPageTables;
 
@@ -114,8 +116,6 @@ public class AddrSpace {
 
     Debug.println('a', "Initializing address space, numPages=" 
 		+ numPages + ", size=" + size);
-
-    MemoryManager memoryManager = Nachos.memoryManager;
     
     // first, set up the translation 
     TranslationEntry[] pageTable = new TranslationEntry[numPages];
@@ -123,24 +123,9 @@ public class AddrSpace {
     threadPageTables.put((UserThread)NachosThread.currentThread(), pageTable);
     
     for (int i = 0; i < numPages; i++) {
-      pageTable[i] = new TranslationEntry();
-      pageTable[i].virtualPage = i; // for now, virtual page# = phys page#
-      pageTable[i].physicalPage = memoryManager.getUnusedPage();
-      pageTable[i].valid = true;
-      pageTable[i].use = false;
-      pageTable[i].dirty = false;
-      pageTable[i].readOnly = false;  // if code and data segments live on
-				      // separate pages, we could set code 
-				      // pages to be read-only
+      initializePage(pageTable, i);
     }
     
-    // Zero out the entire address space, to zero the uninitialized data 
-    // segment and the stack segment.
-    for(int i = 0; i < pageTable.length; i++) {
-	int physicalPageAddr = getPageAddr(pageTable[i].physicalPage);
-	for (int j = 0; j < Machine.PageSize; j++)
-	    Machine.mainMemory[physicalPageAddr + j] = (byte)0;
-    }
     // then, copy in the code and data segments into memory
     if (noffH.code.size > 0) {
       Debug.println('a', "Initializing code segment, at " +
@@ -164,10 +149,35 @@ public class AddrSpace {
 	  executable.read(Machine.mainMemory, translate(noffH.initData.virtualAddr + i), 1);
     }
     
-    basePageTable = Arrays.copyOf(pageTable, (int)size - UserStackSize);
-
+    basePageTable = Arrays.copyOf(pageTable, numPages - NumStackPages);
+    
     return(0);
   }
+
+private void wipePage(TranslationEntry[] pageTable, int virtualPage) {
+    int physicalPageAddr = getPageAddr(pageTable[virtualPage].physicalPage);
+    for (int j = 0; j < Machine.PageSize; j++) {
+        Machine.mainMemory[physicalPageAddr + j] = (byte)0;
+    } // Zero out the entire address space, to zero the uninitialized data 
+    // segment and the stack segment.
+}
+
+private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
+      MemoryManager memoryManager = Nachos.memoryManager;
+    
+      pageTable[virtualPage] = new TranslationEntry();
+      pageTable[virtualPage].virtualPage = virtualPage;
+      pageTable[virtualPage].physicalPage = memoryManager.getUnusedPage();
+      pageTable[virtualPage].valid = true;
+      pageTable[virtualPage].use = false;
+      pageTable[virtualPage].dirty = false;
+      pageTable[virtualPage].readOnly = false;  // if code and data segments live on
+				      // separate pages, we could set code 
+				      // pages to be read-only
+      wipePage(pageTable, virtualPage);
+      
+      Debug.println('0', NachosThread.currentThread().name + " " +  virtualPage + " virtual to " + pageTable[virtualPage].physicalPage + " physical");
+}
 
   /**
    * Initialize the user-level register set to values appropriate for
@@ -206,7 +216,7 @@ public class AddrSpace {
    * For now, nothing!
    */
   public void saveState() {
-    Debug.println('+', NachosThread.currentThread().name + " saving state");
+    Debug.println('0', NachosThread.currentThread().name + " saving state");
   }
 
   /**
@@ -216,7 +226,7 @@ public class AddrSpace {
    * For now, just tell the machine where to find the page table.
    */
   public void restoreState() {
-    Debug.println('+', NachosThread.currentThread().name + " restoring state");
+    Debug.println('0', NachosThread.currentThread().name + " restoring state");
     CPU.setPageTable(getCurrentPageTable());
   }
   
@@ -269,8 +279,10 @@ public class AddrSpace {
   public void exit() {
       MemoryManager memoryManager = Nachos.memoryManager;
       TranslationEntry[] pageTable = getCurrentPageTable();
-      //for (int i = 0; i < pageTable.length; i++)
-	  // memoryManager.freePage(pageTable[i].physicalPage);
+      for (int i = 0; i < pageTable.length; i++) {
+	  memoryManager.freePage(pageTable[i].physicalPage);
+	  Debug.println('0', "Page " + pageTable[i].physicalPage + " freed");
+      }
   }
   
   private int translate(int virtualAddr) {
@@ -283,18 +295,48 @@ public class AddrSpace {
   }
 
   public void addUserThread(UserThread thread) {
+    TranslationEntry[] pageTable = Arrays.copyOf(basePageTable, basePageTable.length + NumStackPages);
+    System.out.println(thread.name + " " + pageTable.length + " " + basePageTable.length);
+    for (int i = basePageTable.length; i < pageTable.length; i++) {
+	initializePage(pageTable, i);
+    }
+    
     lock.acquire();
-    threadPageTables.put(thread, Arrays.copyOf(basePageTable, basePageTable.length + UserStackSize));
+    threadPageTables.put(thread, pageTable);
     lock.release();
   }
-
+  
   public void removeUserThread(UserThread thread) {
+    TranslationEntry[] pageTable;
+    System.out.println(thread.name + " removed");
     lock.acquire();
-    threadPageTables.remove(thread);
+    pageTable = threadPageTables.remove(thread);
     lock.release();
+    
+    MemoryManager memoryManager = Nachos.memoryManager;
+    
+    for (int i = basePageTable.length; i < pageTable.length; i++) {
+	memoryManager.freePage(pageTable[i].physicalPage);
+    }
   }
 
   private TranslationEntry[] getCurrentPageTable() {
-      return threadPageTables.get(NachosThread.currentThread());
+      TranslationEntry[] pageTable;
+      
+      lock.acquire();
+      pageTable = threadPageTables.get(NachosThread.currentThread());
+      lock.release();
+      
+      return pageTable;
+  }
+  
+  public boolean hasNoUserThreads() {
+      boolean hasNoUserThreads;
+      
+      lock.acquire();
+      hasNoUserThreads = threadPageTables.isEmpty();
+      lock.release();
+      
+      return hasNoUserThreads;
   }
 }

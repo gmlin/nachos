@@ -26,7 +26,7 @@ public class UserProgram implements Runnable {
     
     /** Fork program */
     public UserProgram(UserThread thread, int func) {
-	execName = "forked prog";
+	execName = "Fork(" + thread.name + ")";
 	AddrSpace space = thread.space;
 	userThread = new UserThread(execName, this, space);
 	forked = true;
@@ -64,7 +64,6 @@ public class UserProgram implements Runnable {
     public void run() {
 	if (!forked) {
         	OpenFile executable;
-        	System.out.println("running" + " " + execName);
         	if((executable = Nachos.fileSystem.open(execName)) == null) {
         	    Debug.println('+', "Unable to open executable file: " + execName);
         	    Nachos.scheduler.finishThread();
@@ -88,8 +87,6 @@ public class UserProgram implements Runnable {
 	    CPU.writeRegister(MIPS.NextPCReg,
 		    CPU.readRegister(MIPS.PCReg)+4);
 	}
-	
-	userThread.space.addUserThread(userThread);
 	
 	userThread.space.restoreState();		// load page table register
 	

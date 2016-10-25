@@ -80,8 +80,18 @@ public class Syscall {
      * status = 0 means the program exited normally.
      */
     public static void exit(int status) {
+	UserThread userThread = (UserThread)NachosThread.currentThread();
+	AddrSpace space = userThread.space;
+	
 	Debug.println('+', "User program exits with status=" + status
-				+ ": " + NachosThread.currentThread().name);
+		+ ": " + userThread.name);
+	
+	space.removeUserThread(userThread);
+	
+	if (space.hasNoUserThreads()) { 
+	    space.exit();
+	}
+	
 	Nachos.scheduler.finishThread();
     }
 
