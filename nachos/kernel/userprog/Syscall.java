@@ -8,6 +8,7 @@ package nachos.kernel.userprog;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.kernel.threads.Semaphore;
 import nachos.machine.CPU;
 import nachos.machine.NachosThread;
 import nachos.machine.Simulation;
@@ -83,13 +84,14 @@ public class Syscall {
 	UserThread userThread = (UserThread)NachosThread.currentThread();
 	AddrSpace space = userThread.space;
 	
+	space.removeUserThread(userThread);
+	
 	Debug.println('+', "User program exits with status=" + status
 		+ ": " + userThread.name);
 	
-	space.removeUserThread(userThread);
-	
 	if (space.hasNoUserThreads()) { 
 	    space.exit();
+	    Debug.println('+', "Space " + userThread.spaceId + " exits with status=" + status);
 	}
 	
 	Nachos.scheduler.finishThread();

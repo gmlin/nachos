@@ -3,12 +3,13 @@ package nachos.kernel.userprog;
 import java.util.HashMap;
 import java.util.Map;
 
+import nachos.Debug;
 import nachos.kernel.threads.Lock;
 
 public class ProcessTable {
 
     private int nextSpaceId;
-    private Map<Integer, AddrSpace> addrSpaceMap;
+    private Map<AddrSpace, Integer> addrSpaceMap;
     private Lock lock;
     
     public ProcessTable() {
@@ -17,31 +18,29 @@ public class ProcessTable {
 	lock = new Lock("Process table lock");
     }
     
-    public int addSpace(AddrSpace space) {
+    /** returns the spaceId for an existing or new AddrSpace */
+    public int getOrAddSpace(AddrSpace space) {
 	int spaceId;
-	
 	lock.acquire();
-	spaceId = nextSpaceId;
-	addrSpaceMap.put(spaceId, space);
-	nextSpaceId++;
+	if (addrSpaceMap.containsKey(space))
+	    spaceId = addrSpaceMap.get(space);
+	else {
+	    spaceId = nextSpaceId++;
+	    addrSpaceMap.put(space, spaceId);
+	    Debug.println('0', "Added space " + spaceId);
+	}
 	lock.release();
 	
 	return spaceId;
     }
     
-    public void removeSpaceId(int spaceId) {
+    public void removeSpace(AddrSpace space) {
+	int spaceId;
 	lock.acquire();
-	addrSpaceMap.remove(spaceId);
+	spaceId = addrSpaceMap.remove(space);
 	lock.release();
+	
+	Debug.println('0', "Removed space " + spaceId);
     }
     
-    public AddrSpace getSpace(int spaceId) {
-	AddrSpace space;
-	
-	lock.acquire();
-	space = addrSpaceMap.get(spaceId);
-	lock.release();
-	
-	return space;
-    }
 }

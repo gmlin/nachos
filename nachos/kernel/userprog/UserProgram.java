@@ -3,6 +3,7 @@ package nachos.kernel.userprog;
 import nachos.Debug;
 import nachos.kernel.Nachos;
 import nachos.kernel.filesys.OpenFile;
+import nachos.kernel.threads.Semaphore;
 import nachos.machine.CPU;
 import nachos.machine.MIPS;
 import nachos.machine.Machine;
@@ -89,7 +90,6 @@ public class UserProgram implements Runnable {
 	}
 	
 	userThread.space.restoreState();		// load page table register
-	
 	CPU.runUserCode();			// jump to the user progam
 	Debug.ASSERT(false);		// machine->Run never returns;
 	// the address space exits

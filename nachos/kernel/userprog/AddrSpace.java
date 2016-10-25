@@ -277,12 +277,11 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
   }
   
   public void exit() {
-      MemoryManager memoryManager = Nachos.memoryManager;
-      TranslationEntry[] pageTable = getCurrentPageTable();
-      for (int i = 0; i < pageTable.length; i++) {
-	  memoryManager.freePage(pageTable[i].physicalPage);
-	  Debug.println('0', "Page " + pageTable[i].physicalPage + " freed");
+      for (int i = 0; i < basePageTable.length; i++) {
+	  free(basePageTable, i);
       }
+      
+      Nachos.processTable.removeSpace(this);
   }
   
   private int translate(int virtualAddr) {
@@ -296,7 +295,7 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
 
   public void addUserThread(UserThread thread) {
     TranslationEntry[] pageTable = Arrays.copyOf(basePageTable, basePageTable.length + NumStackPages);
-    System.out.println(thread.name + " " + pageTable.length + " " + basePageTable.length);
+    Debug.println('0', thread.name + " added to AddrSpace " + thread.spaceId);
     for (int i = basePageTable.length; i < pageTable.length; i++) {
 	initializePage(pageTable, i);
     }
@@ -308,17 +307,20 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
   
   public void removeUserThread(UserThread thread) {
     TranslationEntry[] pageTable;
-    System.out.println(thread.name + " removed");
+    Debug.println('0', thread.name + " removed from AddrSpace " + thread.spaceId);
     lock.acquire();
     pageTable = threadPageTables.remove(thread);
     lock.release();
     
-    MemoryManager memoryManager = Nachos.memoryManager;
-    
     for (int i = basePageTable.length; i < pageTable.length; i++) {
-	memoryManager.freePage(pageTable[i].physicalPage);
+	free(pageTable, i);
     }
   }
+
+private void free(TranslationEntry[] pageTable, int virtualPage) {
+    Nachos.memoryManager.freePage(pageTable[virtualPage].physicalPage);
+    Debug.println('0', "Physical page " + pageTable[virtualPage].physicalPage + " freed");
+}
 
   private TranslationEntry[] getCurrentPageTable() {
       TranslationEntry[] pageTable;
