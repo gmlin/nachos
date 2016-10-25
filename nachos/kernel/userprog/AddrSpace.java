@@ -281,6 +281,7 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
 	  free(basePageTable, i);
       }
       
+      Nachos.processTable.removeSpace(this);
   }
   
   private int translate(int virtualAddr) {
@@ -310,8 +311,6 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
     lock.acquire();
     pageTable = threadPageTables.remove(thread);
     lock.release();
-    
-    Nachos.processTable.removeProcess(thread.spaceId);
     
     for (int i = basePageTable.length; i < pageTable.length; i++) {
 	free(pageTable, i);
