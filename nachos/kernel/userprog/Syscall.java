@@ -91,7 +91,7 @@ public class Syscall {
 	
 	if (space.hasNoUserThreads()) { 
 	    space.exit();
-	    Debug.println('+', "Space " + userThread.spaceId + " exits with status=" + status);
+	    Debug.println('+', "Space exits with status=" + status);
 	}
 	
 	Nachos.scheduler.finishThread();

@@ -54,7 +54,7 @@ public class UserThread extends NachosThread {
 	super(name, runObj);
 	space = addrSpace;
 	ProcessTable table = Nachos.processTable;
-	spaceId = table.getOrAddSpace(space);
+	spaceId = table.addProcess(space);
     }
 
     /**
