@@ -219,7 +219,21 @@ public class Syscall {
      */
     public static int read(byte buffer[], int size, int id) {
 	Debug.println('+', "Reading");
-	return 0;
+	int bytesRead = 0;
+	if (id == ConsoleInput) {
+	    for (int i = 0; i < size; i++) {
+		char c = Nachos.consoleDriver.getChar();
+		bytesRead++;
+		if (c == '\n') {
+		    buffer[i] = 0;
+		    break;
+		}
+		else
+		    buffer[i] = (byte) c;
+	    }
+	}
+	
+	return bytesRead;
     }
 
     /**

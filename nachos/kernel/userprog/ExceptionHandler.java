@@ -80,6 +80,12 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 		Syscall.yield();
 		break;
 	    case Syscall.SC_Read:
+		int readPtr = CPU.readRegister(4);
+		int readLen = CPU.readRegister(5);
+		byte readBuf[] = new byte[readLen];
+		
+		Syscall.read(readBuf, readLen, CPU.readRegister(6));
+		System.arraycopy(readBuf, 0, Machine.mainMemory, readPtr, readLen);
 		break;
 	    case Syscall.SC_Write:
 		int ptr = CPU.readRegister(4);

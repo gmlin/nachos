@@ -83,6 +83,18 @@ to automatically awake the thread calling Join and remove the semaphore.
 Yield is straightforward, I simply called Nachos.scheduler.yieldThread()
 to have the current thread to yield the CPU.
 
+# Write System Call
+
+Most of this was already provided. The characters are copied from the
+main memory into the buffer and then from the buffer into the console.
+
+# Read System Call
+
+Read is very similar to Write except in reverse. The characters are
+read from the console until it reaches a newline in which case we
+add a null terminating byte, otherwise we just cast the bytes to char.
+The buffer is then copied into the main memory.
+
 Instructions
 ############
 
@@ -101,3 +113,8 @@ that calls Exec on the exec program and then joins it. The exit value
 of the process with the specified spaceId is then returned and can be
 verified in the output.
 
+I did not have sufficient time to test Yield, Read, and Write.
+
+There is a problem with nachos going into idle mode after all the threads finish
+and does not return. Make sure to terminate the program or else it may stay as
+a process and waste CPU and memory.
