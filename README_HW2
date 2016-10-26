@@ -74,7 +74,9 @@ to a semaphore. I then call P() on the semaphore. When a thread finishes
 running, its exit value is added to another Map in ProcessTable which 
 maps the spaceId to its exit value. If there is a semaphore and an 
 exitValue for a given spaceId, V() is called which allows the thread
-that called Join to awake. The exitValue is then written into R2.
+that called Join to awake. The exitValue is then written into R2. To 
+prevent semaphores for orphaned threads to build up, I use a callout 
+to automatically awake the thread calling Join and remove the semaphore.
 
 # Yield System Call
 
@@ -83,3 +85,19 @@ to have the current thread to yield the CPU.
 
 Instructions
 ############
+
+To print out debug messages that I added, add -d 0 to the run configuration.
+For more insight on the different threads, I found -d t was useful as well.
+
+To test user programs in the test subfolder, add -x test/prog-name to
+the run configuration.
+
+To test Exec and Exit, I wrote "exec.c" and compiled it wih the MIPS cross compiler.
+By running this program, it executed the exit program which you also have to
+compile. The output using -d 0 helps verify that this works.
+
+To test Fork and Join, I wrote "fork.c". This program forks to a method
+that calls Exec on the exec program and then joins it. The exit value
+of the process with the specified spaceId is then returned and can be
+verified in the output.
+

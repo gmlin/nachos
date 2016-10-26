@@ -127,6 +127,17 @@ public class Syscall {
 	Debug.println('0', "Join waiting for space " + id);
 	Semaphore sem = new Semaphore("Join " + id, 0);
 	Nachos.processTable.addSemaphore(id, sem);
+	
+	Nachos.callout.schedule(new Runnable() {
+
+	    @Override
+	    public void run() {
+		sem.V();
+		Nachos.processTable.removeSemaphore(id);
+	    }
+	    
+	}, 1000);
+	
 	sem.P();
 	int exit = Nachos.processTable.getExitValue(id);
 	Debug.println('0', "Join " + id + " returned " + exit);
@@ -236,6 +247,7 @@ public class Syscall {
 	UserProgram forked = new UserProgram((UserThread)NachosThread.currentThread(), func);
 	Semaphore forkStarted = new Semaphore("Fork started", 0);
 	forked.start(forkStarted);
+	
 	forkStarted.P();
     }
 

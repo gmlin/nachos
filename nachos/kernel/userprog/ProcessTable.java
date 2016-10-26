@@ -65,10 +65,18 @@ public class ProcessTable {
     public int getExitValue(int id) {
 	int exitValue;
 	lock.acquire();
-	exitValue = exitValues.remove(id);
-	joinSemaphores.remove(id);
+	
+	if (exitValues.containsKey(id))
+	    exitValue = exitValues.remove(id);
+	else 
+	    exitValue = -1;
+	
 	lock.release();
 	
 	return exitValue;
+    }
+
+    public void removeSemaphore(int id) {
+	joinSemaphores.remove(id);
     }
 }
