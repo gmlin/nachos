@@ -47,7 +47,7 @@ public class ProgTest {
 				 "Usage: -x <executable file>",
 				 new Options.Action() {
 				    public void processOption(String flag, Object[] params) {
-					new UserProgram((String)params[0], count[0]++).start();
+					new UserProgram((String)params[0], count[0]++).start(null);
 				    }
 				 })
 		 });

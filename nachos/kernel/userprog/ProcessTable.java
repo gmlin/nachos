@@ -17,6 +17,7 @@ public class ProcessTable {
     public ProcessTable() {
 	nextSpaceId = 0;
 	addrSpaceMap = new HashMap<>();
+	joinSemaphores = new HashMap<>();
 	lock = new Lock("Process table lock");
     }
     

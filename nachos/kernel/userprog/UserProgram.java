@@ -16,6 +16,7 @@ public class UserProgram implements Runnable {
     private UserThread userThread;
     private boolean forked;
     private int func;
+    private Semaphore notifyCreator;
     
     /**
      * Start the test by creating a new address space and user thread,
@@ -63,6 +64,9 @@ public class UserProgram implements Runnable {
      * CPU.run() is called to transfer control to user mode.
      */
     public void run() {
+	if (notifyCreator != null)
+	    notifyCreator.V();
+	
 	if (!forked) {
         	OpenFile executable;
         	if((executable = Nachos.fileSystem.open(execName)) == null) {
@@ -96,7 +100,9 @@ public class UserProgram implements Runnable {
 	// by doing the syscall "exit"
     }
     
-    public int start() {
+    public int start(Semaphore sem) {
+	notifyCreator = sem;
+	
 	Nachos.scheduler.readyToRun(userThread);
 	
 	return userThread.spaceId;

@@ -106,7 +106,13 @@ public class Syscall {
     public static int exec(String name) {
 	Debug.println('+', "exec(" + name + ")");
 	UserProgram program = new UserProgram("test/" + name);
-	int spaceId = program.start();
+	
+	Semaphore progStarted = new Semaphore("Prog started", 0);
+	
+	int spaceId = program.start(progStarted);
+	
+	progStarted.P();
+	
 	CPU.writeRegister(2, spaceId);
 	
 	return spaceId;
@@ -226,7 +232,9 @@ public class Syscall {
     public static void fork(int func) {
 	Debug.println('+', "Forking " + func);
 	UserProgram forked = new UserProgram((UserThread)NachosThread.currentThread(), func);
-	forked.start();
+	Semaphore forkStarted = new Semaphore("Fork started", 0);
+	forked.start(forkStarted);
+	forkStarted.P();
     }
 
     /**
