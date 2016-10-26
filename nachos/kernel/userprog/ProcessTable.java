@@ -5,11 +5,13 @@ import java.util.Map;
 
 import nachos.Debug;
 import nachos.kernel.threads.Lock;
+import nachos.kernel.threads.Semaphore;
 
 public class ProcessTable {
 
     private int nextSpaceId;
     private Map<AddrSpace, Integer> addrSpaceMap;
+    private Map<Integer, Semaphore> joinSemaphores;
     private Lock lock;
     
     public ProcessTable() {
@@ -38,9 +40,19 @@ public class ProcessTable {
 	int spaceId;
 	lock.acquire();
 	spaceId = addrSpaceMap.remove(space);
+	if (joinSemaphores.containsKey(spaceId))
+	    joinSemaphores.get(spaceId).V();
 	lock.release();
 	
 	Debug.println('0', "Removed space " + spaceId);
     }
     
+    public void addSemaphore(int joinId, Semaphore semaphore) {
+	lock.acquire();
+	if (addrSpaceMap.containsValue(joinId)) {
+	    joinSemaphores.put(joinId, semaphore);
+	}
+	else
+	    semaphore.V();
+    }
 }

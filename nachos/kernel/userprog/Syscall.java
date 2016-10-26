@@ -120,7 +120,9 @@ public class Syscall {
      * @return the exit status of the specified program.
      */
     public static int join(int id) {
-	Debug.println('+', id + " is joining");
+	Debug.println('+', "Join waiting for space " + id);
+	Semaphore sem = new Semaphore("Join " + id, 0);
+	sem.P();
 	return 0;
     }
 
