@@ -56,13 +56,17 @@ public class ProcessTable {
     public void addSemaphore(int joinId, Semaphore semaphore) {
 	lock.acquire();
 	joinSemaphores.put(joinId, semaphore);
+	
+	if (exitValues.containsKey(joinId))
+	    semaphore.V();
 	lock.release();
     }
     
     public int getExitValue(int id) {
 	int exitValue;
 	lock.acquire();
-	exitValue = exitValues.get(id);
+	exitValue = exitValues.remove(id);
+	joinSemaphores.remove(id);
 	lock.release();
 	
 	return exitValue;

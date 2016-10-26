@@ -245,6 +245,7 @@ public class Syscall {
      */
     public static void yield() {
 	Debug.println('+', "Yielding");
+	Nachos.scheduler.yieldThread();
     }
 
 }

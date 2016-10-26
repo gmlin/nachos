@@ -10,6 +10,7 @@ import nachos.machine.MIPS;
 import nachos.machine.Machine;
 import nachos.machine.MachineException;
 import nachos.machine.NachosThread;
+import nachos.kernel.Nachos;
 import nachos.kernel.userprog.Syscall;
 
 /**
@@ -74,6 +75,11 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 	    case Syscall.SC_Join:
 		int exit = Syscall.join(CPU.readRegister(4));
 		CPU.writeRegister(2, exit);
+		break;
+	    case Syscall.SC_Yield:
+		Syscall.yield();
+		break;
+	    case Syscall.SC_Read:
 		break;
 	    case Syscall.SC_Write:
 		int ptr = CPU.readRegister(4);

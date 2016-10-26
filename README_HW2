@@ -57,5 +57,29 @@ was provided as the argument to Fork.
 
 # Exit System Call
 
+When Exit is called, the UserThread that calls it is removed from the
+List of UserThreads in the AddrSpace. The UserThread's stack memory is
+freed.  If there are no more UserThreads using the AddrSpace, the 
+AddrSpace can be removed. When the AddrSpace is removed, the rest of the 
+memory being used by the AddrSpace are freed. The ProcessTable also updates
+its entries and puts the exit value in case Join is called later.
+
+# Join System Call
+
+To implement Join, I needed a way to cause the thread calling Join to
+sleep until the process with the spaceId finishes. A semaphore would
+be able to provide this functionality. When Join is called, I create
+a semaphore and add it to a Map in ProcessTables which maps a spaceId
+to a semaphore. I then call P() on the semaphore. When a thread finishes 
+running, its exit value is added to another Map in ProcessTable which 
+maps the spaceId to its exit value. If there is a semaphore and an 
+exitValue for a given spaceId, V() is called which allows the thread
+that called Join to awake. The exitValue is then written into R2.
+
+# Yield System Call
+
+Yield is straightforward, I simply called Nachos.scheduler.yieldThread()
+to have the current thread to yield the CPU.
+
 Instructions
 ############
