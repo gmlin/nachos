@@ -3,5 +3,5 @@
 int
 main()
 {
-	int spaceId = Exec("exit");
+	Exit(13);
 }

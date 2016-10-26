@@ -19,6 +19,7 @@ import nachos.kernel.userprog.AddrSpace;
 import nachos.kernel.userprog.UserProgram;
 import nachos.kernel.userprog.UserThread;
 import nachos.kernel.filesys.OpenFile;
+import nachos.kernel.threads.Semaphore;
 
 /**
  * This is a test class for demonstrating that Nachos can load a user
@@ -36,6 +37,8 @@ public class ProgTest {
      * creating a new ProgTest object.
      */
     public static void start() {
+	Semaphore progStarted = new Semaphore("Prog started", 0);
+	
 	Debug.ASSERT(Nachos.options.FILESYS_REAL || Nachos.options.FILESYS_STUB,
 			"A filesystem is required to execute user programs");
 	final int[] count = new int[1];
@@ -47,9 +50,10 @@ public class ProgTest {
 				 "Usage: -x <executable file>",
 				 new Options.Action() {
 				    public void processOption(String flag, Object[] params) {
-					new UserProgram((String)params[0], count[0]++).start(null);
+					new UserProgram((String)params[0], count[0]++).start(progStarted);
 				    }
 				 })
 		 });
+	progStarted.P();
     }
 }

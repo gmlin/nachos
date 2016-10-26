@@ -153,6 +153,7 @@ public class Nachos implements Runnable {
 	// devices, such as timers or the console keyboard, have been
 	// started, Nachos will not shut down by itself because there is
 	// no way to tell what a future interrupt might cause to happen!
+	
 	scheduler.finishThread();
     }
 

@@ -65,13 +65,15 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 		Syscall.exit(CPU.readRegister(4));
 		break;
 	    case Syscall.SC_Exec:
-		Syscall.exec(space.readString(CPU.readRegister(4)));
+		int spaceId = Syscall.exec(space.readString(CPU.readRegister(4)));
+		CPU.writeRegister(2, spaceId);
 		break;
 	    case Syscall.SC_Fork:
 		Syscall.fork(CPU.readRegister(4));
 		break;
 	    case Syscall.SC_Join:
-		Syscall.join(CPU.readRegister(4));
+		int exit = Syscall.join(CPU.readRegister(4));
+		CPU.writeRegister(2, exit);
 		break;
 	    case Syscall.SC_Write:
 		int ptr = CPU.readRegister(4);

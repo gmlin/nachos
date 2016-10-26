@@ -276,12 +276,12 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
       return Machine.mainMemory[translate(getPageAddr(virtualPage) + offset)];
   }
   
-  public void exit() {
+  public void exit(int status) {
       for (int i = 0; i < basePageTable.length; i++) {
 	  free(basePageTable, i);
       }
       
-      Nachos.processTable.removeSpace(this);
+      Nachos.processTable.removeSpace(this, status);
   }
   
   private int translate(int virtualAddr) {

@@ -12,12 +12,14 @@ public class ProcessTable {
     private int nextSpaceId;
     private Map<AddrSpace, Integer> addrSpaceMap;
     private Map<Integer, Semaphore> joinSemaphores;
+    private Map<Integer, Integer> exitValues;
     private Lock lock;
     
     public ProcessTable() {
 	nextSpaceId = 0;
 	addrSpaceMap = new HashMap<>();
 	joinSemaphores = new HashMap<>();
+	exitValues = new HashMap<>();
 	lock = new Lock("Process table lock");
     }
     
@@ -37,10 +39,13 @@ public class ProcessTable {
 	return spaceId;
     }
     
-    public void removeSpace(AddrSpace space) {
+    public void removeSpace(AddrSpace space, int status) {
 	int spaceId;
 	lock.acquire();
 	spaceId = addrSpaceMap.remove(space);
+	
+	exitValues.put(spaceId, status);
+	
 	if (joinSemaphores.containsKey(spaceId))
 	    joinSemaphores.get(spaceId).V();
 	lock.release();
@@ -50,10 +55,16 @@ public class ProcessTable {
     
     public void addSemaphore(int joinId, Semaphore semaphore) {
 	lock.acquire();
-	if (addrSpaceMap.containsValue(joinId)) {
-	    joinSemaphores.put(joinId, semaphore);
-	}
-	else
-	    semaphore.V();
+	joinSemaphores.put(joinId, semaphore);
+	lock.release();
+    }
+    
+    public int getExitValue(int id) {
+	int exitValue;
+	lock.acquire();
+	exitValue = exitValues.get(id);
+	lock.release();
+	
+	return exitValue;
     }
 }

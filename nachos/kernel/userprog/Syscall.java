@@ -90,7 +90,7 @@ public class Syscall {
 		+ ": " + userThread.name);
 	
 	if (space.hasNoUserThreads()) { 
-	    space.exit();
+	    space.exit(status);
 	    Debug.println('+', "Space " + userThread.spaceId + " exits with status=" + status);
 	}
 	
@@ -113,8 +113,6 @@ public class Syscall {
 	
 	progStarted.P();
 	
-	CPU.writeRegister(2, spaceId);
-	
 	return spaceId;
     }
 
@@ -126,10 +124,14 @@ public class Syscall {
      * @return the exit status of the specified program.
      */
     public static int join(int id) {
-	Debug.println('+', "Join waiting for space " + id);
+	Debug.println('0', "Join waiting for space " + id);
 	Semaphore sem = new Semaphore("Join " + id, 0);
+	Nachos.processTable.addSemaphore(id, sem);
 	sem.P();
-	return 0;
+	int exit = Nachos.processTable.getExitValue(id);
+	Debug.println('0', "Join " + id + " returned " + exit);
+	
+	return exit;
     }
 
 

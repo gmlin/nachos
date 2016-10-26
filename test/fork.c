@@ -3,11 +3,12 @@
 void
 test()
 {
-	Exec("halt");
+	Exec("exec");
 }
 
 int
 main()
 {
 	Fork(&test);
+	Join(2);
 }
