@@ -284,7 +284,7 @@ private void initializePage(TranslationEntry[] pageTable, int virtualPage) {
       Nachos.processTable.removeSpace(this, status);
   }
   
-  private int translate(int virtualAddr) {
+  public int translate(int virtualAddr) {
       int virtualPage = virtualAddr / Machine.PageSize;
       int offset = virtualAddr % Machine.PageSize;
       int physicalPage = getCurrentPageTable()[virtualPage].physicalPage;

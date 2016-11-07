@@ -8,6 +8,7 @@ package nachos.kernel.userprog;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.kernel.threads.Lock;
 import nachos.kernel.threads.Semaphore;
 import nachos.machine.CPU;
 import nachos.machine.NachosThread;
@@ -63,7 +64,10 @@ public class Syscall {
     /** Integer code identifying the "Remove" system call. */
     public static final byte SC_Remove = 11;
 
-
+    private static Lock readLock = new Lock("syscall read lock");
+    
+    private static Lock writeLock = new Lock("syscall write lock");
+    
     /**
      * Stop Nachos, and print out performance stats.
      */
@@ -105,7 +109,7 @@ public class Syscall {
      */
     public static int exec(String name) {
 	Debug.println('+', "exec(" + name + ")");
-	UserProgram program = new UserProgram("test/" + name);
+	UserProgram program = new UserProgram(name);
 	
 	Semaphore progStarted = new Semaphore("Prog started", 0);
 	
@@ -197,12 +201,14 @@ public class Syscall {
      * @param id The OpenFileId of the file to which to write the data.
      */
     public static void write(byte buffer[], int size, int id) {
+	writeLock.acquire();
 	Debug.println('+', "Writing");
 	if (id == ConsoleOutput) {
 	    for(int i = 0; i < size; i++) {
 		Nachos.consoleDriver.putChar((char)buffer[i]);
 	    }
 	}
+	writeLock.release();
     }
 
     /**
@@ -218,6 +224,7 @@ public class Syscall {
      * @return The actual number of bytes read.
      */
     public static int read(byte buffer[], int size, int id) {
+	readLock.acquire();
 	Debug.println('+', "Reading");
 	int bytesRead = 0;
 	if (id == ConsoleInput) {
@@ -232,6 +239,7 @@ public class Syscall {
 		    buffer[i] = (byte) c;
 	    }
 	}
+	readLock.release();
 	
 	return bytesRead;
     }
