@@ -1,29 +1,28 @@
 package nachos.kernel.userprog;
 
-import nachos.machine.NachosThread;
 import nachos.util.FIFOQueue;
 import nachos.util.Queue;
 
 public class FirstComeFirstServe implements ReadyList {
 
-    private final Queue<NachosThread> queue;
+    private final Queue<UserThread> queue;
     
     public FirstComeFirstServe() {
-	queue = new FIFOQueue<NachosThread>();
+	queue = new FIFOQueue<UserThread>();
     }
     
     @Override
-    public boolean offer(NachosThread e) {
+    public boolean offer(UserThread e) {
 	return queue.offer(e);
     }
 
     @Override
-    public NachosThread peek() {
+    public UserThread peek() {
 	return queue.peek();
     }
 
     @Override
-    public NachosThread poll() {
+    public UserThread poll() {
 	return queue.poll();
     }
 

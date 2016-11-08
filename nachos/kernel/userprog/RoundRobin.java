@@ -13,7 +13,7 @@ import nachos.util.Queue;
 public class RoundRobin implements ReadyList {
 
     private final int QUANTUM = 1000;
-    private final Queue<NachosThread> queue;
+    private final Queue<UserThread> queue;
     private int timeElapsed;
     
     public RoundRobin() {
@@ -29,17 +29,17 @@ public class RoundRobin implements ReadyList {
     }
     
     @Override
-    public boolean offer(NachosThread e) {
+    public boolean offer(UserThread e) {
 	return queue.offer(e);
     }
 
     @Override
-    public NachosThread peek() {
+    public UserThread peek() {
 	return queue.peek();
     }
 
     @Override
-    public NachosThread poll() {
+    public UserThread poll() {
 	timeElapsed = 0;
 	return queue.poll();
     }

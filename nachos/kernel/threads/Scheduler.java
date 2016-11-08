@@ -19,6 +19,7 @@ import nachos.kernel.Nachos;
 import nachos.kernel.userprog.FirstComeFirstServe;
 import nachos.kernel.userprog.ReadyList;
 import nachos.kernel.userprog.RoundRobin;
+import nachos.kernel.userprog.ShortestProcessNext;
 import nachos.kernel.userprog.UserThread;
 import nachos.machine.CPU;
 import nachos.machine.Machine;
@@ -81,7 +82,7 @@ public class Scheduler {
 	kernelReadyList = new FIFOQueue<NachosThread>();
 	cpuList = new FIFOQueue<CPU>();
 	
-	userReadyList = new RoundRobin();
+	userReadyList = new ShortestProcessNext();
 
 	Debug.println('t', "Initializing scheduler");
 
@@ -160,7 +161,7 @@ public class Scheduler {
 	thread.setStatus(NachosThread.READY);
 	
 	if (thread instanceof UserThread)
-	    userReadyList.offer(thread);
+	    userReadyList.offer((UserThread)thread);
 	else
 	    kernelReadyList.offer(thread);
     }
