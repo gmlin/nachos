@@ -16,6 +16,8 @@ package nachos.kernel.threads;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
+import nachos.kernel.userprog.FCFSReadyList;
+import nachos.kernel.userprog.ReadyList;
 import nachos.kernel.userprog.UserThread;
 import nachos.machine.CPU;
 import nachos.machine.Machine;
@@ -53,9 +55,11 @@ import nachos.util.Queue;
  */
 public class Scheduler {
 
-    /** Queue of threads that are ready to run, but not running. */
-    private final Queue<NachosThread> readyList;
+    /** Queue of kernel threads that are ready to run, but not running. */
+    private final Queue<NachosThread> kernelReadyList;
 
+    private final ReadyList userReadyList;
+    
     /** Queue of CPUs that are idle. */
     private final Queue<CPU> cpuList;
     
@@ -73,8 +77,10 @@ public class Scheduler {
      * @param firstThread  The first NachosThread to run.
      */
     public Scheduler(NachosThread firstThread) {
-	readyList = new FIFOQueue<NachosThread>();
+	kernelReadyList = new FIFOQueue<NachosThread>();
 	cpuList = new FIFOQueue<CPU>();
+	
+	userReadyList = new FCFSReadyList();
 
 	Debug.println('t', "Initializing scheduler");
 
@@ -147,11 +153,15 @@ public class Scheduler {
      */
     private void makeReady(NachosThread thread) {
 	Debug.ASSERT(CPU.getLevel() == CPU.IntOff && mutex.isLocked());
-
+	
 	Debug.println('t', "Putting thread on ready list: " + thread.name);
 
 	thread.setStatus(NachosThread.READY);
-	readyList.offer(thread);
+	
+	if (thread instanceof UserThread)
+	    userReadyList.offer(thread);
+	else
+	    kernelReadyList.offer(thread);
     }
 
     /**
@@ -162,8 +172,12 @@ public class Scheduler {
      */
     private void dispatchIdleCPUs() {
 	Debug.ASSERT(CPU.getLevel() == CPU.IntOff && mutex.isLocked());
-	while(!readyList.isEmpty() && !cpuList.isEmpty()) {
-	    NachosThread thread = readyList.poll();
+	while((!kernelReadyList.isEmpty() || !userReadyList.isEmpty()) && !cpuList.isEmpty()) {
+	    NachosThread thread;
+	    if (!kernelReadyList.isEmpty())
+		thread = kernelReadyList.poll();
+	    else
+		thread = userReadyList.poll();
 	    CPU cpu = cpuList.poll();
 	    Debug.println('t', "Dispatching " + thread.name + " on " + cpu.name);
 	    cpu.dispatch(thread);
@@ -182,7 +196,9 @@ public class Scheduler {
     private NachosThread findNextToRun() {
 	Debug.ASSERT(CPU.getLevel() == CPU.IntOff);
 	mutex.acquire();
-	NachosThread result = readyList.poll();
+	NachosThread result = kernelReadyList.poll();
+	if (result == null)
+	    result = userReadyList.poll();
 	mutex.release();
 	return result;
     }
@@ -387,7 +403,7 @@ public class Scheduler {
 
 	/** The Timer device this is a handler for. */
 	private final Timer timer;
-
+	
 	/**
 	 * Initialize an interrupt handler for a specified Timer device.
 	 * 

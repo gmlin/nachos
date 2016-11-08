@@ -95,7 +95,6 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 		
 		for (int i = 0; i < len; i++) {
 		    buf[i] = Machine.mainMemory[addrSpace.translate(ptr + i)];
-		    System.out.println(Machine.mainMemory[addrSpace.translate(ptr + i)]);
 		}
 		//System.arraycopy(Machine.mainMemory, ptr, buf, 0, len);
 		Syscall.write(buf, len, CPU.readRegister(6));
