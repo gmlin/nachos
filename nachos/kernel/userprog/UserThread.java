@@ -34,6 +34,9 @@ public class UserThread extends NachosThread {
     
     /** set prediction using syscall */
     public int timeLeft = Integer.MAX_VALUE;
+    
+    /** time added to readylist for HRRN */
+    public int timeAdded;
 
     // A thread running a user program actually has *two* sets of 
     // CPU registers -- one for its state while executing user code,

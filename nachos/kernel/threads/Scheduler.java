@@ -17,6 +17,7 @@ package nachos.kernel.threads;
 import nachos.Debug;
 import nachos.kernel.Nachos;
 import nachos.kernel.userprog.FirstComeFirstServe;
+import nachos.kernel.userprog.HighestResponseRatioNext;
 import nachos.kernel.userprog.ReadyList;
 import nachos.kernel.userprog.RoundRobin;
 import nachos.kernel.userprog.ShortestProcessNext;
@@ -83,7 +84,7 @@ public class Scheduler {
 	kernelReadyList = new FIFOQueue<NachosThread>();
 	cpuList = new FIFOQueue<CPU>();
 	
-	userReadyList = new ShortestRemainingTime();
+	userReadyList = new HighestResponseRatioNext();
 
 	Debug.println('t', "Initializing scheduler");
 
