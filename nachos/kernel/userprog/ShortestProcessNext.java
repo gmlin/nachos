@@ -12,7 +12,7 @@ public class ShortestProcessNext implements ReadyList {
 
 	    @Override
 	    public int compare(UserThread o1, UserThread o2) {
-		return o1.predictedCPU - o2.predictedCPU;
+		return o1.timeLeft - o2.timeLeft;
 	    }
 	    
 	});
