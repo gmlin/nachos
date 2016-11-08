@@ -31,6 +31,9 @@ public class UserThread extends NachosThread {
     public final AddrSpace space;
     
     public int spaceId;
+    
+    /** set prediction using syscall */
+    public int predictedCPU = Integer.MAX_VALUE;
 
     // A thread running a user program actually has *two* sets of 
     // CPU registers -- one for its state while executing user code,

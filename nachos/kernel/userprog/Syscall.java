@@ -63,6 +63,8 @@ public class Syscall {
 
     /** Integer code identifying the "Remove" system call. */
     public static final byte SC_Remove = 11;
+    
+    public static final byte SC_PredictCPU = 12;
 
     private static Lock readLock = new Lock("syscall read lock");
     
@@ -280,6 +282,11 @@ public class Syscall {
     public static void yield() {
 	Debug.println('+', "Yielding");
 	Nachos.scheduler.yieldThread();
+    }
+    
+    public static void predictCPU(int ticks) {
+	Debug.println('+', "Predicting " + ticks);
+	((UserThread)NachosThread.currentThread()).predictedCPU = ticks;
     }
 
 }

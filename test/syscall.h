@@ -30,6 +30,7 @@
 #define SC_Fork		9
 #define SC_Yield	10
 #define SC_Remove	11
+#define SC_PredictCPU 12
 
 #ifndef IN_ASM
 

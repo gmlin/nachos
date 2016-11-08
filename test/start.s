@@ -138,7 +138,16 @@ Yield:
 	syscall
 	j	$31
 	.end Yield
-
+	
+	.globl PredictCPU
+	.ent PredictCPU
+PredictCPU:
+	addiu $2,$0,SC_PredictCPU
+	syscall
+	j   $31
+	
+	.end PredictCPU
+	
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

@@ -99,6 +99,9 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 		//System.arraycopy(Machine.mainMemory, ptr, buf, 0, len);
 		Syscall.write(buf, len, CPU.readRegister(6));
 		break;
+	    case Syscall.SC_PredictCPU:
+		Syscall.predictCPU(CPU.readRegister(4));
+		break;
 	    }
 
 	    // Update the program counter to point to the next instruction
