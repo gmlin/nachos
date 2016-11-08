@@ -16,8 +16,9 @@ package nachos.kernel.threads;
 
 import nachos.Debug;
 import nachos.kernel.Nachos;
-import nachos.kernel.userprog.FCFSReadyList;
+import nachos.kernel.userprog.FirstComeFirstServe;
 import nachos.kernel.userprog.ReadyList;
+import nachos.kernel.userprog.RoundRobin;
 import nachos.kernel.userprog.UserThread;
 import nachos.machine.CPU;
 import nachos.machine.Machine;
@@ -80,7 +81,7 @@ public class Scheduler {
 	kernelReadyList = new FIFOQueue<NachosThread>();
 	cpuList = new FIFOQueue<CPU>();
 	
-	userReadyList = new FCFSReadyList();
+	userReadyList = new RoundRobin();
 
 	Debug.println('t', "Initializing scheduler");
 

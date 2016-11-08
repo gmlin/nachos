@@ -4,11 +4,11 @@ import nachos.machine.NachosThread;
 import nachos.util.FIFOQueue;
 import nachos.util.Queue;
 
-public class FCFSReadyList implements ReadyList {
+public class FirstComeFirstServe implements ReadyList {
 
     private final Queue<NachosThread> queue;
     
-    public FCFSReadyList() {
+    public FirstComeFirstServe() {
 	queue = new FIFOQueue<NachosThread>();
     }
     
