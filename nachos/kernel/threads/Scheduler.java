@@ -85,7 +85,7 @@ public class Scheduler {
 	kernelReadyList = new FIFOQueue<NachosThread>();
 	cpuList = new FIFOQueue<CPU>();
 	
-	userReadyList = new FeedbackScheduling();
+	userReadyList = new FirstComeFirstServe();
 
 	Debug.println('t', "Initializing scheduler");
 
