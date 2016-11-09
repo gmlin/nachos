@@ -1,0 +1,49 @@
+Description
+###########
+
+I separated the handling of kernel threads and user threads by having a queue for kernel threads that I
+poll threads from before polling from the ready list for user threads. By doing this, I ensure that kernel
+threads are prioritized and run before user threads are run.
+
+# ReadyList interface
+I created an interface that the scheduling policies would implement. The methods that I included in this were
+poll, offer, peek, and isEmpty.
+
+# FirstComeFirstServe
+This is the simplest implementation of ReadyList. I simply used a FIFOQueue as the underlying data structure
+and the methods of the interface are basically a wrapper around the FIFOQueue methods. Each thread added to the
+ReadyList will be polled in the same order that they were added.
+
+# RoundRobin
+For this, I needed to use a InterruptHandler to put threads back into the queue when they have finished running
+or have run for a quantum. Once the time elapsed has reached the quantum or exceeded it, it is placed back into the
+queue and another thread is picked.
+
+# ShortestProcessNext
+For this, I needed to implement a new PredictCPU syscall. I edited the code in Syscall and ExceptionHandler as well
+as the code in syscall.h and start.s to support the new syscall. Afterwards, I added a new field to UserThread which
+would keep track of the prediction. I then used a PriorityQueue instead of a normal queue to sort the UserThreads
+by the prediction value.
+
+# ShortestRemainingTime
+I added fields in the class as well as UserThread to keep track of time. After a thread has run for a quantum, it
+subtracts the time run from the prediction value and then checks if the prediction value is still the smallest
+for all threads. If not, it switches to a different thread.
+
+# HighestResponseRatioNext
+This is similar to ShortestProcessNext except the order of the threads may change over time. To solve this, I use
+a List instead of a PriorityQueue and then I sort it after each insertion. I also use an interrupt handler to 
+update the time that I use in the calculations for the comparator.
+
+# FeedbackScheduling
+This is similar to RoundRobin except the there are multiple queues with different quanta. I initially place the
+thread in the first quantum and then if it fails to finish running, it is placed to the next. When it reaches the
+final queue, it repeatedly stays in that queue until it finishes. When choosing a thread to run, it chooses one
+from the highest priority queue with the smallest quantum.
+
+Instructions
+############
+
+To switch between the various scheduling policies, change the implementation of ReadyList in the constructor of
+the Scheduler class. The various implementations of ReadyList are FirstComeFirstServe, RoundRobin,
+ShortestProcessNext, ShortestRemainingTime, HighestResponseRatioNext, and FeedbackScheduling.
