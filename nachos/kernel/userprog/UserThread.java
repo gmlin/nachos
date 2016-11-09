@@ -38,6 +38,9 @@ public class UserThread extends NachosThread {
     /** time added to readylist for HRRN */
     public int timeAdded;
 
+    /** the next queue for feedback scheduling */
+    public int nextQueue = 0;
+    
     // A thread running a user program actually has *two* sets of 
     // CPU registers -- one for its state while executing user code,
     // and one for its state while executing kernel code.
