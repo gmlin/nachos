@@ -123,7 +123,7 @@ public class Options {
     public int NUM_PORTS = 1;
     
     /** The types of disk devices on the system. */
-    public Class<?>[] DISK_TYPES = new Class<?>[] { /* Disk.class */ };
+    public Class<?>[] DISK_TYPES = new Class<?>[] { Disk.class };
 
     /** The number of disks on the system. */
     public int NUM_DISKS = DISK_TYPES.length;
@@ -173,7 +173,7 @@ public class Options {
     public boolean CONSOLE_TEST = false;
     
     /** Should we run the filesystem test? */
-    public boolean FILESYS_TEST = false;
+    public boolean FILESYS_TEST = true;
     
     /** Should we run the serial port test? */
     public boolean SERIAL_TEST = false;

@@ -20,6 +20,8 @@ package nachos.kernel.devices;
 
 import nachos.Debug;
 import nachos.machine.Machine;
+import nachos.util.FIFOQueue;
+import nachos.util.Queue;
 import nachos.machine.Disk;
 import nachos.machine.InterruptHandler;
 import nachos.kernel.threads.Semaphore;
@@ -41,8 +43,32 @@ import nachos.kernel.threads.Lock;
  * @author Peter Druschel (Rice University), Java translation
  * @author Eugene W. Stark (Stony Brook University)
  */
+
 public class DiskDriver {
 
+    class DiskRequest {
+	
+	// is write request if false
+	public boolean isRead;
+	
+	public int sectorNumber;
+	
+	public byte[] buffer;
+	
+	public Semaphore semaphore;
+	
+	public DiskRequest(boolean isRead, int sectorNumber, byte[] buffer) {
+	    this.isRead = isRead;
+	    this.sectorNumber = sectorNumber;
+	    this.buffer = buffer;
+	    
+	    if (isRead)
+		semaphore = new Semaphore("Read sector " + sectorNumber + " semaphore", 0);
+	    else
+		semaphore = new Semaphore("Write sector " + sectorNumber + " semaphore", 0);
+	}
+    }
+    
     /** Raw disk device. */
     private Disk disk;
 
@@ -51,6 +77,8 @@ public class DiskDriver {
 
     /** Only one read/write request can be sent to the disk at a time. */
     private Lock lock;
+    
+    private Queue<DiskRequest> requests;
 
     /**
      * Initialize the synchronous interface to the physical disk, in turn
@@ -63,6 +91,7 @@ public class DiskDriver {
 	lock = new Lock("synch disk lock");
 	disk = Machine.getDisk(unit);
 	disk.setHandler(new DiskIntHandler());
+	requests = new FIFOQueue<>();
     }
 
     /**
