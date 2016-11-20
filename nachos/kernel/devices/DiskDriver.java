@@ -84,6 +84,10 @@ public class DiskDriver {
     
     private Queue<DiskRequest> requests;
 
+    private boolean busy;
+    
+    private DiskRequest currentRequest;
+    
     /**
      * Initialize the synchronous interface to the physical disk, in turn
      * initializing the physical disk.
@@ -96,6 +100,8 @@ public class DiskDriver {
 	disk = Machine.getDisk(unit);
 	disk.setHandler(new DiskIntHandler());
 	requests = new FIFOQueue<>();
+	busy = false;
+	currentRequest = null;
     }
 
     /**
@@ -137,6 +143,8 @@ public class DiskDriver {
 	
 	requests.offer(request);
 	
+	startRequest();
+	
 	CPU.setLevel(oldLevel);
 	lock.release();
 	
@@ -164,12 +172,29 @@ public class DiskDriver {
 	
 	requests.offer(request);
 	
+	startRequest();
+	
 	CPU.setLevel(oldLevel);
 	lock.release();
 	
 	request.semaphore.P();
     }
 
+    public void startRequest() {
+	if (busy || requests.isEmpty())
+	    return;
+	
+	busy = true;
+	currentRequest = requests.poll();
+	
+	if (currentRequest.isRead) {
+	    disk.readRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
+	}
+	else {
+	    disk.writeRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
+	}
+    }
+    
     /**
      * DiskDriver interrupt handler class.
      */
@@ -180,6 +205,14 @@ public class DiskDriver {
 	 */
 	public void handleInterrupt() {
 	    // semaphore.V();
+	    
+	    lock.acquire();
+	    
+	    currentRequest.semaphore.V();
+	    busy = false;
+	    startRequest();
+	    
+	    lock.release();
 	}
     }
 
