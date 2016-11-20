@@ -22,6 +22,7 @@ import nachos.Debug;
 import nachos.machine.Machine;
 import nachos.util.FIFOQueue;
 import nachos.util.Queue;
+import nachos.machine.CPU;
 import nachos.machine.Disk;
 import nachos.machine.InterruptHandler;
 import nachos.kernel.threads.Semaphore;
@@ -55,12 +56,15 @@ public class DiskDriver {
 	
 	public byte[] buffer;
 	
+	public int index;
+	
 	public Semaphore semaphore;
 	
-	public DiskRequest(boolean isRead, int sectorNumber, byte[] buffer) {
+	public DiskRequest(boolean isRead, int sectorNumber, byte[] buffer, int index) {
 	    this.isRead = isRead;
 	    this.sectorNumber = sectorNumber;
 	    this.buffer = buffer;
+	    this.index = index;
 	    
 	    if (isRead)
 		semaphore = new Semaphore("Read sector " + sectorNumber + " semaphore", 0);
@@ -73,7 +77,7 @@ public class DiskDriver {
     private Disk disk;
 
     /** To synchronize requesting thread with the interrupt handler. */
-    private Semaphore semaphore;
+    // private Semaphore semaphore;
 
     /** Only one read/write request can be sent to the disk at a time. */
     private Lock lock;
@@ -87,7 +91,7 @@ public class DiskDriver {
      * @param unit  The disk unit to be handled by this driver.
      */
     public DiskDriver(int unit) {
-	semaphore = new Semaphore("synch disk", 0);
+	// semaphore = new Semaphore("synch disk", 0);
 	lock = new Lock("synch disk lock");
 	disk = Machine.getDisk(unit);
 	disk.setHandler(new DiskIntHandler());
@@ -122,10 +126,21 @@ public class DiskDriver {
      */
     public void readSector(int sectorNumber, byte[] data, int index) {
 	Debug.ASSERT(0 <= sectorNumber && sectorNumber < getNumSectors());
+	DiskRequest request = new DiskRequest(true, sectorNumber, data, index);
+	
 	lock.acquire();			// only one disk I/O at a time
-	disk.readRequest(sectorNumber, data, index);
-	semaphore.P();			// wait for interrupt
+	int oldLevel = CPU.setLevel(CPU.IntOff);
+	
+	// disk.readRequest(sectorNumber, data, index);
+	// semaphore.P();			// wait for interrupt
+	// lock.release();
+	
+	requests.offer(request);
+	
+	CPU.setLevel(oldLevel);
 	lock.release();
+	
+	request.semaphore.P();
     }
 
     /**
@@ -138,10 +153,21 @@ public class DiskDriver {
      */
     public void writeSector(int sectorNumber, byte[] data, int index) {
 	Debug.ASSERT(0 <= sectorNumber && sectorNumber < getNumSectors());
+	DiskRequest request = new DiskRequest(false, sectorNumber, data, index);
+	
 	lock.acquire();			// only one disk I/O at a time
-	disk.writeRequest(sectorNumber, data, index);
-	semaphore.P();			// wait for interrupt
+	int oldLevel = CPU.setLevel(CPU.IntOff);
+	
+	// disk.writeRequest(sectorNumber, data, index);
+	// semaphore.P();			// wait for interrupt
+	// lock.release();
+	
+	requests.offer(request);
+	
+	CPU.setLevel(oldLevel);
 	lock.release();
+	
+	request.semaphore.P();
     }
 
     /**
@@ -153,7 +179,7 @@ public class DiskDriver {
 	 * the request that just finished.
 	 */
 	public void handleInterrupt() {
-	    semaphore.V();
+	    // semaphore.V();
 	}
     }
 
