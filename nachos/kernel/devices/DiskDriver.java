@@ -18,6 +18,9 @@
 
 package nachos.kernel.devices;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
 import nachos.Debug;
 import nachos.machine.Machine;
 import nachos.util.FIFOQueue;
@@ -82,13 +85,22 @@ public class DiskDriver {
     /** Only one read/write request can be sent to the disk at a time. */
     private Lock lock;
     
-    private Queue<DiskRequest> requests;
+    // used for FIFO
+    private Queue<DiskRequest> fifoRequests;
 
+    // used for CSCAN, new requests whose tracks are before the current position are added to this
+    private PriorityQueue<DiskRequest> nextCSCANRequests;
+    
+    // used for CSCAN, the requests in this are fulfilled before going back to start
+    private PriorityQueue<DiskRequest> currentCSCANRequests;
+    
     private boolean busy;
     
     private DiskRequest currentRequest;
     
     private boolean useCSCAN;
+    
+    private Comparator<DiskRequest> trackComparator;
     
     /**
      * Initialize the synchronous interface to the physical disk, in turn
@@ -101,10 +113,25 @@ public class DiskDriver {
 	lock = new Lock("synch disk lock");
 	disk = Machine.getDisk(unit);
 	disk.setHandler(new DiskIntHandler());
-	requests = new FIFOQueue<>();
 	busy = false;
 	currentRequest = null;
 	this.useCSCAN = useCSCAN;
+	trackComparator = new Comparator<DiskRequest>() {
+
+	    @Override
+	    public int compare(DiskRequest o1, DiskRequest o2) {
+		return getTrackNumber(o1.sectorNumber) - getTrackNumber(o2.sectorNumber);
+	    }
+		
+	};
+	
+	if (useCSCAN) {
+	    nextCSCANRequests = new PriorityQueue<>(trackComparator);
+	    currentCSCANRequests = new PriorityQueue<>(trackComparator);
+	}
+	else {
+	    fifoRequests = new FIFOQueue<>();
+	}
     }
 
     /**
@@ -125,6 +152,35 @@ public class DiskDriver {
 	return disk.geometry.SectorSize;
     }
 
+    public int getTrackNumber(int sectorNumber) {
+	return sectorNumber / disk.geometry.SectorsPerTrack;
+    }
+    
+    private void addDiskRequest(DiskRequest request) {
+	lock.acquire();			// only one disk I/O at a time
+	int oldLevel = CPU.setLevel(CPU.IntOff);
+	
+	// disk.readRequest(sectorNumber, data, index);
+	// semaphore.P();			// wait for interrupt
+	// lock.release();
+	
+	if (useCSCAN) {
+	    if (!currentCSCANRequests.isEmpty() && trackComparator.compare(request, currentCSCANRequests.peek()) <= 0)
+		currentCSCANRequests.offer(request);
+	    else
+		nextCSCANRequests.offer(request);
+	}
+	else
+	    fifoRequests.offer(request);
+	
+	startRequest();
+	
+	CPU.setLevel(oldLevel);
+	lock.release();
+	
+	request.semaphore.P();
+    }
+    
     /**
      * Read the contents of a disk sector into a buffer.  Return only
      *	after the data has been read.
@@ -135,23 +191,7 @@ public class DiskDriver {
      */
     public void readSector(int sectorNumber, byte[] data, int index) {
 	Debug.ASSERT(0 <= sectorNumber && sectorNumber < getNumSectors());
-	DiskRequest request = new DiskRequest(true, sectorNumber, data, index);
-	
-	lock.acquire();			// only one disk I/O at a time
-	int oldLevel = CPU.setLevel(CPU.IntOff);
-	
-	// disk.readRequest(sectorNumber, data, index);
-	// semaphore.P();			// wait for interrupt
-	// lock.release();
-	
-	requests.offer(request);
-	
-	startRequest();
-	
-	CPU.setLevel(oldLevel);
-	lock.release();
-	
-	request.semaphore.P();
+	addDiskRequest(new DiskRequest(true, sectorNumber, data, index));
     }
 
     /**
@@ -164,36 +204,42 @@ public class DiskDriver {
      */
     public void writeSector(int sectorNumber, byte[] data, int index) {
 	Debug.ASSERT(0 <= sectorNumber && sectorNumber < getNumSectors());
-	DiskRequest request = new DiskRequest(false, sectorNumber, data, index);
-	
-	lock.acquire();			// only one disk I/O at a time
-	int oldLevel = CPU.setLevel(CPU.IntOff);
-	
-	// disk.writeRequest(sectorNumber, data, index);
-	// semaphore.P();			// wait for interrupt
-	// lock.release();
-	
-	requests.offer(request);
-	
-	startRequest();
-	
-	CPU.setLevel(oldLevel);
-	lock.release();
-	
-	request.semaphore.P();
+	addDiskRequest(new DiskRequest(false, sectorNumber, data, index));
     }
 
-    public void startRequest() {
-	if (busy || requests.isEmpty())
+    private void startRequest() {
+	if (busy)
 	    return;
 	
+	if (useCSCAN) {
+	    if (currentCSCANRequests.isEmpty()) { // swap priority queues to simulate returning to start track
+		Debug.println('0', "Returning to starting track");
+		
+		PriorityQueue<DiskRequest> temp = currentCSCANRequests;
+		currentCSCANRequests = nextCSCANRequests;
+		nextCSCANRequests = temp;
+	    }
+	    
+	    if (currentCSCANRequests.isEmpty())
+		return;
+	    else
+		currentRequest = currentCSCANRequests.poll();
+	}
+	else {
+	    if (fifoRequests.isEmpty())
+		return;
+	    else
+		currentRequest = fifoRequests.poll();
+	}
+	
 	busy = true;
-	currentRequest = requests.poll();
 	
 	if (currentRequest.isRead) {
+	    Debug.println('0', "Reading track " + getTrackNumber(currentRequest.sectorNumber));
 	    disk.readRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
 	}
 	else {
+	    Debug.println('0', "Writing track " + getTrackNumber(currentRequest.sectorNumber));
 	    disk.writeRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
 	}
     }

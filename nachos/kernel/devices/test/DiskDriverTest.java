@@ -3,6 +3,7 @@ package nachos.kernel.devices.test;
 import java.util.Random;
 
 import nachos.Debug;
+import nachos.machine.Disk;
 import nachos.machine.Machine;
 import nachos.machine.NachosThread;
 import nachos.kernel.Nachos;
@@ -12,8 +13,8 @@ import nachos.kernel.devices.SerialDriver;
 
 public class DiskDriverTest {
     
-    private static final int NUM_THREADS = 10;
-    private static final int SLEEP_TIME = 10000;
+    private static final int NUM_THREADS = 20;
+    private static final int SLEEP_TIME = 5000;
     
     public static void start() {
 	Debug.println('p', "Entering DiskDriverTest");
@@ -35,11 +36,11 @@ public class DiskDriverTest {
 		    byte[] buffer = new byte[sectorSize];
 		    
 		    if (random.nextBoolean()) {
-			Debug.println('0', NachosThread.currentThread().name + " requests to read from sector " + sectorNumber);
+			Debug.println('0', NachosThread.currentThread().name + " requests to read from track " + driver.getTrackNumber(sectorNumber));
 			driver.readSector(sectorNumber, buffer, 0);
 		    }
 		    else {
-			Debug.println('0', NachosThread.currentThread().name + " requests to write to sector " + sectorNumber);
+			Debug.println('0', NachosThread.currentThread().name + " requests to write to track " + driver.getTrackNumber(sectorNumber));
 			driver.writeSector(sectorNumber, buffer, 0);
 		    }
 		    
@@ -51,6 +52,5 @@ public class DiskDriverTest {
 	    
 	    Nachos.scheduler.readyToRun(thread);
 	}
-	System.out.println("hi");
     }
 }
