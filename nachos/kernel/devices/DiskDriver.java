@@ -209,13 +209,9 @@ public class DiskDriver {
 	public void handleInterrupt() {
 	    // semaphore.V();
 	    
-	    lock.acquire();
-	    
 	    currentRequest.semaphore.V();
 	    busy = false;
 	    startRequest();
-	    
-	    lock.release();
 	}
     }
 

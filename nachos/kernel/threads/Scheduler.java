@@ -347,7 +347,7 @@ public class Scheduler {
 	Semaphore semaphore = new Semaphore("semaphore", 0);
 	Callout callout = Nachos.callout;
 	
-	Debug.println('0', "*** thread " + currentThread.name + " sleeping for " + ticks + " ticks" );
+	//Debug.println('0', "*** thread " + currentThread.name + " sleeping for " + ticks + " ticks" );
 	
 	callout.schedule(new Runnable() {
 
@@ -360,7 +360,7 @@ public class Scheduler {
 	
 	semaphore.P();
 	
-	Debug.println('0', "*** thread " + currentThread.name + " woke up");
+	//Debug.println('0', "*** thread " + currentThread.name + " woke up");
     }
     
     /**

@@ -146,9 +146,10 @@ public class Nachos implements Runnable {
 	    CalloutTest.start();
 	if (options.SYNCHRONOUS_QUEUE_TEST)
 	    SynchronousQueueTest.start();
-	if (options.DISK_DRIVER_TEST)
+	if (options.DISK_DRIVER_TEST) {
 	    DiskDriverTest.start();
-
+	}
+	    
 	// Terminate the first thread, its job is done.
 	// Alternatively, you could give this thread the responsibility
 	// of waiting for all other threads to terminate and then shutting
