@@ -31,6 +31,7 @@ import nachos.kernel.devices.DiskDriver;
 import nachos.kernel.devices.NetworkDriver;
 import nachos.kernel.devices.SerialDriver;
 import nachos.kernel.devices.test.ConsoleTest;
+import nachos.kernel.devices.test.DiskDriverTest;
 import nachos.kernel.devices.test.NetworkTest;
 import nachos.kernel.devices.test.SerialTest;
 import nachos.kernel.threads.Callout;
@@ -97,7 +98,7 @@ public class Nachos implements Runnable {
 	    consoleManager = new ConsoleManager(Machine.NUM_CONSOLES);
 	}
 	if (Machine.NUM_DISKS > 0)
-	    diskDriver = new DiskDriver(0);
+	    diskDriver = new DiskDriver(0, options.USE_CSCAN);
 
 	if (Machine.NUM_PORTS > 0)
 	    serialDriver = new SerialDriver();
@@ -145,6 +146,8 @@ public class Nachos implements Runnable {
 	    CalloutTest.start();
 	if (options.SYNCHRONOUS_QUEUE_TEST)
 	    SynchronousQueueTest.start();
+	if (options.DISK_DRIVER_TEST)
+	    DiskDriverTest.start();
 
 	// Terminate the first thread, its job is done.
 	// Alternatively, you could give this thread the responsibility

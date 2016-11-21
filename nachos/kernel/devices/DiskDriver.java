@@ -88,13 +88,15 @@ public class DiskDriver {
     
     private DiskRequest currentRequest;
     
+    private boolean useCSCAN;
+    
     /**
      * Initialize the synchronous interface to the physical disk, in turn
      * initializing the physical disk.
      * 
      * @param unit  The disk unit to be handled by this driver.
      */
-    public DiskDriver(int unit) {
+    public DiskDriver(int unit, boolean useCSCAN) {
 	// semaphore = new Semaphore("synch disk", 0);
 	lock = new Lock("synch disk lock");
 	disk = Machine.getDisk(unit);
@@ -102,6 +104,7 @@ public class DiskDriver {
 	requests = new FIFOQueue<>();
 	busy = false;
 	currentRequest = null;
+	this.useCSCAN = useCSCAN;
     }
 
     /**

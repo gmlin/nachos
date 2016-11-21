@@ -185,6 +185,10 @@ public class Options {
     
     public boolean SYNCHRONOUS_QUEUE_TEST = false;
     
+    public boolean DISK_DRIVER_TEST = false;
+    
+    public boolean USE_CSCAN = false;
+    
     public Options(String[] args) {
 	argList = Arrays.asList(args);
 	parseArgList();
@@ -330,7 +334,32 @@ public class Options {
 			    public void processOption(String flag, Object[] params) {
 				DISK_FILE_NAME = (String)params[0];
 			    }
-			 })
+			 }),
+		new Spec("-dd", // run disk driver test
+			new Class[] { },
+			null,
+			new Options.Action() {
+
+			    @Override
+			    public void processOption(String flag,
+				    Object[] params) {
+				DISK_DRIVER_TEST = true;
+				
+			    }
+		    
+			}),
+		new Spec("-cs", // set CSCAN disk scheduling policy
+			new Class[] { },
+			null,
+			new Options.Action() {
+
+			    @Override
+			    public void processOption(String flag,
+				    Object[] params) {
+				USE_CSCAN = true;
+				
+			    }
+			})
 	});
     }
     
