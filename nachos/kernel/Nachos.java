@@ -161,7 +161,7 @@ public class Nachos implements Runnable {
 	
 	Semaphore threadsFinished = Nachos.scheduler.threadsFinished;
 	
-	while (scheduler.runningThreads.size() > 2) {
+	while (scheduler.runningThreads.size() > 1) {
 	    threadsFinished.P();
 	}
 	

@@ -394,7 +394,7 @@ public class Scheduler {
 	// to be cleaned up.
 	mutex.acquire();
 	
-	runningThreads.remove(threadToBeDestroyed);
+	runningThreads.remove(currentThread);
 	threadsFinished.V();
 	
 	if (threadToBeDestroyed != null) {
