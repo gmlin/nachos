@@ -14,15 +14,13 @@
 
 package nachos.kernel.threads;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import nachos.Debug;
 import nachos.kernel.Nachos;
-import nachos.kernel.userprog.FeedbackScheduling;
 import nachos.kernel.userprog.FirstComeFirstServe;
-import nachos.kernel.userprog.HighestResponseRatioNext;
 import nachos.kernel.userprog.ReadyList;
-import nachos.kernel.userprog.RoundRobin;
-import nachos.kernel.userprog.ShortestProcessNext;
-import nachos.kernel.userprog.ShortestRemainingTime;
 import nachos.kernel.userprog.UserThread;
 import nachos.machine.CPU;
 import nachos.machine.Machine;
@@ -73,7 +71,11 @@ public class Scheduler {
 
     /** Spin lock for mutually exclusive access to scheduler state. */
     private final SpinLock mutex = new SpinLock("scheduler mutex");
-
+    
+    public Semaphore threadsFinished;
+    
+    public Set<NachosThread> runningThreads;
+    
     /**
      * Initialize the scheduler.
      * Set the list of ready but not running threads to empty.
@@ -86,7 +88,11 @@ public class Scheduler {
 	cpuList = new FIFOQueue<CPU>();
 	
 	userReadyList = new FirstComeFirstServe();
-
+	
+	runningThreads = new HashSet<>();
+	
+	threadsFinished = new Semaphore("threads finished", 0);
+	
 	Debug.println('t', "Initializing scheduler");
 
 	// Add all the CPUs to the idle CPU list, and start their time-slice timers,
@@ -134,6 +140,7 @@ public class Scheduler {
     public void readyToRun(NachosThread thread) {
 	int oldLevel = CPU.setLevel(CPU.IntOff);
 	mutex.acquire();
+	runningThreads.add(thread);
 	makeReady(thread);
 	dispatchIdleCPUs();
 	mutex.release();
@@ -163,10 +170,12 @@ public class Scheduler {
 
 	thread.setStatus(NachosThread.READY);
 	
-	if (thread instanceof UserThread)
+	if (thread instanceof UserThread) {
 	    userReadyList.offer((UserThread)thread);
-	else
+	}
+	else {
 	    kernelReadyList.offer(thread);
+	}
     }
 
     /**
@@ -384,6 +393,10 @@ public class Scheduler {
 	// This ensures that there is at most one dead thread ever waiting
 	// to be cleaned up.
 	mutex.acquire();
+	
+	runningThreads.remove(threadToBeDestroyed);
+	threadsFinished.V();
+	
 	if (threadToBeDestroyed != null) {
 	    threadToBeDestroyed.destroy();
 	    threadToBeDestroyed = null;

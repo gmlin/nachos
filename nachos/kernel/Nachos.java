@@ -36,6 +36,7 @@ import nachos.kernel.devices.test.NetworkTest;
 import nachos.kernel.devices.test.SerialTest;
 import nachos.kernel.threads.Callout;
 import nachos.kernel.threads.Scheduler;
+import nachos.kernel.threads.Semaphore;
 import nachos.kernel.userprog.ExceptionHandler;
 import nachos.kernel.userprog.MemoryManager;
 import nachos.kernel.userprog.ProcessTable;
@@ -124,7 +125,7 @@ public class Nachos implements Runnable {
 	memoryManager = new MemoryManager();
 
 	processTable = new ProcessTable();
-
+	
 	// Run test/demo programs, according to the supplied options.
 	// These will typically create additional threads to do the actual
 	// work, leaving the first thread free to go on and start the rest.
@@ -158,7 +159,13 @@ public class Nachos implements Runnable {
 	// started, Nachos will not shut down by itself because there is
 	// no way to tell what a future interrupt might cause to happen!
 	
-	scheduler.finishThread();
+	Semaphore threadsFinished = Nachos.scheduler.threadsFinished;
+	
+	while (scheduler.runningThreads.size() > 2) {
+	    threadsFinished.P();
+	}
+	
+	System.exit(0);
     }
 
     /**
