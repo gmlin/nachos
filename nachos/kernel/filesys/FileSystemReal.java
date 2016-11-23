@@ -412,8 +412,6 @@ class FileSystemReal extends FileSystem {
     directory.fetchFrom(directoryFile);
     directory.list();
     dirHdr.lock.release();
-    
-    checkConsistency();
   }
 
   /**
@@ -468,6 +466,19 @@ class FileSystemReal extends FileSystem {
       
       bitHdr.lock.acquire();
       
+      freeMap.fetchFrom(freeMapFile);
+      
+      usedSectors.add(DirectorySector);
+      usedSectors.add(FreeMapSector);
+      
+      for (int i : dirHdr.dataSectors) {
+          usedSectors.add(i);
+      }
+      
+      for (int i : bitHdr.dataSectors) {
+          usedSectors.add(i);
+      }
+      
       for (DirectoryEntry entry : directory.table) {
 	  int sector = entry.getSector();
 	  if (entry.inUse()) {
@@ -489,8 +500,9 @@ class FileSystemReal extends FileSystem {
 	      
 	      header.lock.release();
 	  }
-	  
-	  for (int i = 0; i < freeMap.numBits; i++) {
+      }
+      
+      for (int i = 0; i < freeMap.numBits; i++) {
 	      if (freeMap.test(i) && !usedSectors.contains(i)) {
 		  Debug.println('0', "Sector " + i + " not in use by file/header but marked in bitmap");
 	      }
@@ -498,8 +510,7 @@ class FileSystemReal extends FileSystem {
 		  Debug.println('0', "Sector " + i + " in use by file/header but not marked in bitmap");
 	      }
 	  }
-	  
-      }
+      
       bitHdr.lock.release();
       dirHdr.lock.release();
   }
