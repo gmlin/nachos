@@ -18,7 +18,9 @@ import nachos.Options;
 import nachos.machine.NachosThread;
 import nachos.machine.Simulation;
 import nachos.kernel.Nachos;
+import nachos.kernel.filesys.FileSystemReal;
 import nachos.kernel.filesys.OpenFile;
+import nachos.kernel.threads.Semaphore;
 
 /**
  * This class implements some simple test routines for the file system.
@@ -129,9 +131,12 @@ public class FileSystemTest implements Runnable {
 	fileRead();
 	if (!Nachos.fileSystem.remove(FileName)) {
 	    Debug.printf('+', "Perf test: unable to remove %s\n", FileName);
-	    return;
 	}
+	
 	Simulation.stats.print();
+	
+	FileSystemReal fsr = (FileSystemReal)Nachos.fileSystem;
+	fsr.checkConsistency();
     }
 
     /** Name of the file to create for the performance test. */
@@ -288,7 +293,7 @@ public class FileSystemTest implements Runnable {
 	 });
 	Nachos.scheduler.finishThread();
     }
-
+    
     /**
      * Entry point for the FileSystem test.
      */

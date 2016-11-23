@@ -82,7 +82,7 @@ import nachos.kernel.devices.DiskDriver;
  * @author Peter Druschel (Rice University), Java translation
  * @author Eugene W. Stark (Stony Brook University)
  */
-class FileSystemReal extends FileSystem {
+public class FileSystemReal extends FileSystem {
 
   // Sectors containing the file headers for the bitmap of free sectors,
   // and the directory of files.  These file headers are placed in 
@@ -447,10 +447,10 @@ class FileSystemReal extends FileSystem {
     
     dirHdr.lock.release();
     bitHdr.lock.release();
-
   } 
   
   public void checkConsistency() {
+      boolean hasErrors = false;
       Directory directory = new Directory(NumDirEntries, this);
       BitMap freeMap = new BitMap(numDiskSectors);
       
@@ -483,10 +483,12 @@ class FileSystemReal extends FileSystem {
 	  int sector = entry.getSector();
 	  if (entry.inUse()) {
 	      if (!usedSectors.add(sector)) {
-		  Debug.println('0', "DirectoryEntry for header at sector " + sector + " is duplicated");
+		  Debug.println('+', "DirectoryEntry for header at sector " + sector + " is duplicated");
+		  hasErrors = true;
 	      }
 	      if (!usedNames.add(entry.getName())) {
-		  Debug.println('0', entry.getName() + " filename is duplicated");
+		  Debug.println('+', entry.getName() + " filename is duplicated");
+		  hasErrors = true;
 	      }
 	      FileHeader header = Nachos.fileHeaderTable.get(sector);
 	      
@@ -494,7 +496,8 @@ class FileSystemReal extends FileSystem {
 	      
 	      for (int i = 0; i < header.numSectors; i++) {
 		  if (!usedSectors.add(header.dataSectors[i])) {
-		      Debug.println('0', "Sector " + sector + " referenced multiple times");
+		      Debug.println('+', "Sector " + sector + " referenced multiple times");
+		      hasErrors = true;
 		  }
 	      }
 	      
@@ -504,14 +507,18 @@ class FileSystemReal extends FileSystem {
       
       for (int i = 0; i < freeMap.numBits; i++) {
 	      if (freeMap.test(i) && !usedSectors.contains(i)) {
-		  Debug.println('0', "Sector " + i + " not in use by file/header but marked in bitmap");
+		  Debug.println('+', "Sector " + i + " not in use by file/header but marked in bitmap");
+		  hasErrors = true;
 	      }
 	      else if (!freeMap.test(i) && usedSectors.contains(i)) {
-		  Debug.println('0', "Sector " + i + " in use by file/header but not marked in bitmap");
+		  Debug.println('+', "Sector " + i + " in use by file/header but not marked in bitmap");
+		  hasErrors = true;
 	      }
 	  }
       
       bitHdr.lock.release();
       dirHdr.lock.release();
+      
+      Debug.println('+', "Consistency check " + ((hasErrors) ? "failed" : "passed"));
   }
 }
