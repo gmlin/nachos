@@ -41,7 +41,7 @@ public class BitMap {
     private static final int BitsInWord = 32;
 
     /** Number of bits in the bitmap. */
-    private int numBits;
+    public int numBits;
 
     /**
      * Number of words of bitmap storage (rounded up if numBits is not a

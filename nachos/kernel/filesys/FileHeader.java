@@ -58,10 +58,10 @@ class FileHeader {
     private int numBytes;
 
     /** Number of data sectors in the file. */
-    private int numSectors;
+    public int numSectors;
 
     /** Disk sector numbers for each data block in the file. */
-    private int dataSectors[];
+    public int dataSectors[];
 
     /** The underlying filesystem in which the file header resides. */
     private final FileSystemReal filesystem;
@@ -141,8 +141,9 @@ class FileHeader {
 	if (freeMap.numClear() < numSectors || NumDirect < numSectors)
 	    return false;		// not enough space
 
-	for (int i = 0; i < numSectors; i++)
+	for (int i = 0; i < numSectors; i++) {
 	    dataSectors[i] = freeMap.find();
+	}
 	return true;
     }
 

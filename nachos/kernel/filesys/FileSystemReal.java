@@ -10,6 +10,9 @@
 
 package nachos.kernel.filesys;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import nachos.Debug;
 import nachos.kernel.Nachos;
 import nachos.kernel.devices.DiskDriver;
@@ -409,6 +412,8 @@ class FileSystemReal extends FileSystem {
     directory.fetchFrom(directoryFile);
     directory.list();
     dirHdr.lock.release();
+    
+    checkConsistency();
   }
 
   /**
@@ -446,4 +451,56 @@ class FileSystemReal extends FileSystem {
     bitHdr.lock.release();
 
   } 
+  
+  public void checkConsistency() {
+      Directory directory = new Directory(NumDirEntries, this);
+      BitMap freeMap = new BitMap(numDiskSectors);
+      
+      FileHeader dirHdr = table.get(DirectorySector);
+      FileHeader bitHdr = table.get(FreeMapSector);
+      
+      Set<Integer> usedSectors = new HashSet<>();
+      Set<String> usedNames = new HashSet<>();
+      
+      dirHdr.lock.acquire();
+      
+      directory.fetchFrom(directoryFile);
+      
+      bitHdr.lock.acquire();
+      
+      for (DirectoryEntry entry : directory.table) {
+	  int sector = entry.getSector();
+	  if (entry.inUse()) {
+	      if (!usedSectors.add(sector)) {
+		  Debug.println('0', "DirectoryEntry for header at sector " + sector + " is duplicated");
+	      }
+	      if (!usedNames.add(entry.getName())) {
+		  Debug.println('0', entry.getName() + " filename is duplicated");
+	      }
+	      FileHeader header = Nachos.fileHeaderTable.get(sector);
+	      
+	      header.lock.acquire();
+	      
+	      for (int i = 0; i < header.numSectors; i++) {
+		  if (!usedSectors.add(header.dataSectors[i])) {
+		      Debug.println('0', "Sector " + sector + " referenced multiple times");
+		  }
+	      }
+	      
+	      header.lock.release();
+	  }
+	  
+	  for (int i = 0; i < freeMap.numBits; i++) {
+	      if (freeMap.test(i) && !usedSectors.contains(i)) {
+		  Debug.println('0', "Sector " + i + " not in use by file/header but marked in bitmap");
+	      }
+	      else if (!freeMap.test(i) && usedSectors.contains(i)) {
+		  Debug.println('0', "Sector " + i + " in use by file/header but not marked in bitmap");
+	      }
+	  }
+	  
+      }
+      bitHdr.lock.release();
+      dirHdr.lock.release();
+  }
 }

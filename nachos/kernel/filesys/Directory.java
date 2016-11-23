@@ -44,7 +44,7 @@ class Directory {
     private int tableSize;
 
     /** Table of pairs: file name/file header location. */
-    private DirectoryEntry table[];
+    public DirectoryEntry table[];
 
     /** The underlying filesystem in which the directory resides. */
     private final FileSystemReal filesystem;
