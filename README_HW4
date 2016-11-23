@@ -1,0 +1,52 @@
+Description
+###########
+
+# Disk Scheduling
+I modified the DiskDriver to use FIFO or CSCAN depending on whether the -cs flag is passed. If it is passed,
+it will use CSCAN and otherwise it will use FIFO. I created a DiskRequest class to hold the information
+that I would need such as the sector number, whether it is a read or write request, and a semaphore. For
+FIFO, I simply add each request to a queue and they are processed in the order that they are added. For
+CSCAN, I add it to the current priority queue if it is in a later track than the next request that will
+be processed. Otherwise, I add it to a different priority queue that the driver will process after it
+finishes processing the current priority queue and returns to the starting track. After adding a request,
+the thread calls P() on the request's semaphore which makes it sleep. After the request is finished, the
+interrupt handler calls V() on the request's semaphore which wakes up the sleeping thread. I created a
+test called DiskDriverTest to demonstrate reading and writing to the disk using one of the scheduling
+policies.
+
+# Thread Safety
+I created the FileHeaderTable class to map the sector numbers of file headers to the FileHeader. This uses
+a HashMap as well as the basic Map methods along with a Lock for synchronization. I added a Lock field to
+FileHeader that each of the threads that want to use the FileHeader must acquire before using. I went
+through the methods in FileSystemReal and OpenFileReal that used the Directory, BitMap, and regular files
+and added thread safety by using the respective Lock objects. To avoid deadlocks, I acquired the Locks
+in the order of Directory, BitMap, and then the regular files. 
+
+# Consistency Checking
+I added a method called checkConsistency() to FileSystemReal that checks for various problems. I make use
+of two Sets to track the used sector numbers as well as the used filenames. I check the DirectoryEntry
+in the table and ensure that there are not duplicate DirectoryEntry for the same FileHeader by checking
+if the FileHeader sector was not previously encountered. I also make sure that a filename that was already
+used is not used again. For each FileHeader, I add each of the sector numbers that the data is stored to
+the Set, making sure that the same sector isn't referenced by the same or another FileHeader. Afterwards,
+I check to make sure each bit in the BitMap is marked consistently if and only if the sector appears as
+used in one of the FileHeaders.
+
+# Stress Test
+I created a number of threads to read and write and remove files from the file system. I then use the
+consistency checking method to test if there are any inconsistencies.
+
+Instructions
+############
+
+To use CSCAN, add the flag "-cs". If it is omitted, FIFO will be used. The disk scheduling policies can be
+tested by running the DiskDriverTest by adding "dd" as a flag.
+
+Use "-cp <from> <to>" to copy a file to the Nachos file system for running tests with FileSystemTest.
+
+To test the consistency checking, you can use "-t" to run the performance test while also printing out
+the results of the consistency check.
+
+Use "-st" to run the stress test. If it stalls Nachos, be sure to terminate it manually.
+
+For additional useful output, add "-d 0".

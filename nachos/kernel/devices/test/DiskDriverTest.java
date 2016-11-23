@@ -36,15 +36,15 @@ public class DiskDriverTest {
 		    byte[] buffer = new byte[sectorSize];
 		    
 		    if (random.nextBoolean()) {
-			Debug.println('0', NachosThread.currentThread().name + " requests to read from track " + driver.getTrackNumber(sectorNumber));
+			Debug.println('+', NachosThread.currentThread().name + " requests to read from track " + driver.getTrackNumber(sectorNumber));
 			driver.readSector(sectorNumber, buffer, 0);
 		    }
 		    else {
-			Debug.println('0', NachosThread.currentThread().name + " requests to write to track " + driver.getTrackNumber(sectorNumber));
+			Debug.println('+', NachosThread.currentThread().name + " requests to write to track " + driver.getTrackNumber(sectorNumber));
 			driver.writeSector(sectorNumber, buffer, 0);
 		    }
 		    
-		    Debug.println('0', NachosThread.currentThread().name + " request has been fulfilled");
+		    Debug.println('+', NachosThread.currentThread().name + " request has been fulfilled");
 		    Nachos.scheduler.finishThread();
 		}
 		

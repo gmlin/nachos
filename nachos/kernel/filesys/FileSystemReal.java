@@ -449,7 +449,7 @@ public class FileSystemReal extends FileSystem {
     bitHdr.lock.release();
   } 
   
-  public void checkConsistency() {
+  public boolean checkConsistency() {
       boolean hasErrors = false;
       Directory directory = new Directory(NumDirEntries, this);
       BitMap freeMap = new BitMap(numDiskSectors);
@@ -520,5 +520,7 @@ public class FileSystemReal extends FileSystem {
       dirHdr.lock.release();
       
       Debug.println('+', "Consistency check " + ((hasErrors) ? "failed" : "passed"));
+      
+      return hasErrors;
   }
 }

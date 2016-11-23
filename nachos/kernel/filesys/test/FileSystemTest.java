@@ -138,6 +138,34 @@ public class FileSystemTest implements Runnable {
 	FileSystemReal fsr = (FileSystemReal)Nachos.fileSystem;
 	fsr.checkConsistency();
     }
+    
+    private void stressTest() {
+	Debug.print('+', "Starting file system stress test:\n");
+	Simulation.stats.print();
+	
+	for (int i = 0; i < 10; i++) {
+	    NachosThread thread = new NachosThread("thread " + i, new Runnable() {
+
+		public void run() {
+		    	fileWrite();
+			fileRead();
+			if (!Nachos.fileSystem.remove(FileName)) {
+			    Debug.printf('+', "Perf test: unable to remove %s\n", FileName);
+			}
+			Nachos.scheduler.finishThread();
+		}
+	    });
+	    
+	    Nachos.scheduler.readyToRun(thread);
+	}
+	
+	
+	
+	Simulation.stats.print();
+	
+	FileSystemReal fsr = (FileSystemReal)Nachos.fileSystem;
+	fsr.checkConsistency();
+    }
 
     /** Name of the file to create for the performance test. */
     private static final String FileName = "TestFile";
@@ -288,6 +316,15 @@ public class FileSystemTest implements Runnable {
 			 new Options.Action() {
 			    public void processOption(String flag, Object[] params) {
 				performanceTest();
+			    }
+			 }),
+			new Options.Spec
+			("-st",  // stress test
+			 new Class[] { },
+			 null,
+			 new Options.Action() {
+			    public void processOption(String flag, Object[] params) {
+				stressTest();
 			    }
 			 })
 	 });
