@@ -11,6 +11,7 @@
 package nachos.kernel.filesys;
 
 import nachos.Debug;
+import nachos.kernel.Nachos;
 import nachos.kernel.devices.DiskDriver;
 
 /**
@@ -117,6 +118,8 @@ class FileSystemReal extends FileSystem {
 
   /** "Root" directory -- list of file names, represented as a file. */
   private final OpenFile directoryFile;
+  
+  private final FileHeaderTable table;
 
   /**
    * Initialize the file system.  If format = true, the disk has
@@ -137,6 +140,7 @@ class FileSystemReal extends FileSystem {
     diskSectorSize = diskDriver.getSectorSize();
     FreeMapFileSize = (numDiskSectors / BitMap.BitsInByte);
     DirectoryFileSize = (DirectoryEntry.sizeOf() * NumDirEntries);
+    table = Nachos.fileHeaderTable;
     
     if (format) {
       BitMap freeMap = new BitMap(numDiskSectors);
@@ -169,10 +173,13 @@ class FileSystemReal extends FileSystem {
       // OK to open the bitmap and directory files now
       // The file system operations assume these two files are left open
       // while Nachos is running.
-
+      
+      table.put(FreeMapSector, mapHdr);
+      table.put(DirectorySector, dirHdr);
+      
       freeMapFile = new OpenFileReal(FreeMapSector, this);
       directoryFile = new OpenFileReal(DirectorySector, this);
-     
+      
       // Once we have the files "open", we can write the initial version
       // of each file back to disk. The directory at this point is completely
       // empty; but the bitmap has been changed to reflect the fact that
@@ -257,14 +264,21 @@ class FileSystemReal extends FileSystem {
     Debug.printf('f', "Creating file %s, size %d\n", name, 
 		 new Long(initialSize));
 
+    FileHeader dirHdr = table.get(DirectorySector);
+    FileHeader mapHdr = table.get(FreeMapSector);
+    
     directory = new Directory(NumDirEntries, this);
+    
+    dirHdr.lock.acquire();
     directory.fetchFrom(directoryFile);
-
-    if (directory.find(name) != -1)
-      success = false;			// file is already in directory
-    else {	
+    mapHdr.lock.acquire();
+    if (directory.find(name) != -1) {
+	success = false;			// file is already in directory
+    }
+    else {
       freeMap = new BitMap(numDiskSectors);
       freeMap.fetchFrom(freeMapFile);
+      
       sector = freeMap.find();	// find a sector to hold the file header
       if (sector == -1) 		
 	success = false;		// no free block for file header 
@@ -272,17 +286,26 @@ class FileSystemReal extends FileSystem {
 	success = false;	// no space in directory
       else {
 	hdr = new FileHeader(this);
+	
+	hdr.lock.acquire();
+	
 	if (!hdr.allocate(freeMap, (int)initialSize))
 	  success = false;	// no space on disk for data
 	else {	
 	  success = true;
 	  // everthing worked, flush all changes back to disk
+	  table.put(sector, hdr);
 	  hdr.writeBack(sector); 		
 	  directory.writeBack(directoryFile);
 	  freeMap.writeBack(freeMapFile);
 	}
+	
+	hdr.lock.release();
       }
     }
+    dirHdr.lock.release();
+    mapHdr.lock.release();
+    
     return success;
   }
 
@@ -299,9 +322,17 @@ class FileSystemReal extends FileSystem {
     OpenFile openFile = null;
     int sector;
 
+    FileHeader dirHdr = table.get(DirectorySector);
+    
     Debug.printf('f', "Opening file %s\n", name);
+    
+    dirHdr.lock.acquire();
+    
     directory.fetchFrom(directoryFile);
     sector = directory.find(name); 
+    
+    dirHdr.lock.release();
+    
     if (sector >= 0) 		
       openFile = new OpenFileReal(sector, this);// name was found in directory 
     return openFile;			        // return null if not found
@@ -325,24 +356,45 @@ class FileSystemReal extends FileSystem {
     FileHeader fileHdr;
     int sector;
     
+    FileHeader dirHdr = table.get(DirectorySector);
+    FileHeader mapHdr = table.get(FreeMapSector);
+    
     directory = new Directory(NumDirEntries, this);
+    dirHdr.lock.acquire();
     directory.fetchFrom(directoryFile);
     sector = directory.find(name);
     if (sector == -1) {
        return false;			 // file not found 
     }
-    fileHdr = new FileHeader(this);
-    fileHdr.fetchFrom(sector);
+    
 
     freeMap = new BitMap(numDiskSectors);
+    
+    mapHdr.lock.acquire();
+    
     freeMap.fetchFrom(freeMapFile);
-
+    
+    fileHdr = table.get(sector);
+    
+    fileHdr.lock.acquire();
+    
+    fileHdr.fetchFrom(sector);
+    
     fileHdr.deallocate(freeMap);  		// remove data blocks
+    
+    fileHdr.lock.release();
+    
     freeMap.clear(sector);			// remove header block
+    table.remove(sector);
     directory.remove(name);
 
     freeMap.writeBack(freeMapFile);		// flush to disk
+    
+    mapHdr.lock.release();
+    
     directory.writeBack(directoryFile);        // flush to disk
+    
+    dirHdr.lock.release();
     return true;
   } 
 
@@ -352,8 +404,11 @@ class FileSystemReal extends FileSystem {
   public void list() {
     Directory directory = new Directory(NumDirEntries, this);
 
+    FileHeader dirHdr = table.get(DirectorySector);
+    dirHdr.lock.acquire();
     directory.fetchFrom(directoryFile);
     directory.list();
+    dirHdr.lock.release();
   }
 
   /**
@@ -365,12 +420,15 @@ class FileSystemReal extends FileSystem {
    *      the data in the file.
    */
   public void print() {
-    FileHeader bitHdr = new FileHeader(this);
-    FileHeader dirHdr = new FileHeader(this);
+    FileHeader bitHdr = table.get(FreeMapSector);
+    FileHeader dirHdr = table.get(DirectorySector);
     BitMap freeMap = new BitMap(numDiskSectors);
     Directory directory = new Directory(NumDirEntries, this);
 
     Debug.print('+', "Bit map file header:\n");
+    dirHdr.lock.acquire();
+    bitHdr.lock.acquire();
+    
     bitHdr.fetchFrom(FreeMapSector);
     bitHdr.print();
 
@@ -383,6 +441,9 @@ class FileSystemReal extends FileSystem {
 
     directory.fetchFrom(directoryFile);
     directory.print();
+    
+    dirHdr.lock.release();
+    bitHdr.lock.release();
 
   } 
 }

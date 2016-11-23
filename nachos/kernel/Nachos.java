@@ -40,6 +40,7 @@ import nachos.kernel.threads.Semaphore;
 import nachos.kernel.userprog.ExceptionHandler;
 import nachos.kernel.userprog.MemoryManager;
 import nachos.kernel.userprog.ProcessTable;
+import nachos.kernel.filesys.FileHeaderTable;
 import nachos.kernel.filesys.FileSystem;
 import nachos.kernel.threads.test.CalloutTest;
 import nachos.kernel.threads.test.SMPTest;
@@ -82,6 +83,8 @@ public class Nachos implements Runnable {
     public static ProcessTable processTable;
 
     public static ConsoleManager consoleManager;
+    
+    public static FileHeaderTable fileHeaderTable;
 
     /**
      * Nachos initialization -- performed by first Nachos thread. Initialize
@@ -109,6 +112,8 @@ public class Nachos implements Runnable {
 
 	// Initialize the filesystem.
 
+	fileHeaderTable = new FileHeaderTable();
+	
 	if (options.FILESYS_STUB || options.FILESYS_REAL)
 	    fileSystem = FileSystem.init(diskDriver);
 

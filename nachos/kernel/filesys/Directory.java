@@ -9,6 +9,8 @@
 
 package nachos.kernel.filesys;
 
+import nachos.kernel.Nachos;
+
 /**
  * This class class defines a UNIX-like "directory".  Each entry in
  * the directory describes a file, and where to find it on disk.
@@ -181,11 +183,10 @@ class Directory {
      * and the contents of each file (for debugging).
      */
     void print() {
-	FileHeader hdr = new FileHeader(filesystem);
-
 	System.out.print("Directory contents: ");
 	for (int i = 0; i < tableSize; i++)
 	    if (table[i].inUse()) {
+		FileHeader hdr = Nachos.fileHeaderTable.get(table[i].getSector());
 		System.out.println("Name " + table[i].getName()
 			+ ", Sector: " + table[i].getSector());
 		hdr.fetchFrom(table[i].getSector());

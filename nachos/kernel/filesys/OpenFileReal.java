@@ -11,6 +11,7 @@
 package nachos.kernel.filesys;
 
 import nachos.Debug;
+import nachos.kernel.Nachos;
 
 /**
  * This is a class for managing an open Nachos file.  As in UNIX, a
@@ -60,8 +61,12 @@ class OpenFileReal implements OpenFile {
      * @param filesystem  The underlying filesystem in which this file exists.
      */
     OpenFileReal(int sector, FileSystemReal filesystem) { 
-	hdr = new FileHeader(filesystem);
+	if (!Nachos.fileHeaderTable.contains(sector))
+	    Nachos.fileHeaderTable.put(sector, new FileHeader(filesystem));
+	hdr = Nachos.fileHeaderTable.get(sector);
+	hdr.lock.acquire();
 	hdr.fetchFrom(sector);
+	hdr.lock.release();
 	seekPosition = 0;
 	this.filesystem = filesystem;
 	diskSectorSize = filesystem.diskSectorSize;
@@ -151,10 +156,11 @@ class OpenFileReal implements OpenFile {
 
 	// read in all the full and partial sectors that we need
 	buf = new byte[numSectors * diskSectorSize];
+	
 	for (i = firstSector; i <= lastSector; i++)	
 	    filesystem.readSector(hdr.byteToSector(i * diskSectorSize), 
 		    buf, (i - firstSector) * diskSectorSize);
-
+	
 	// copy the part we want
 	System.arraycopy(buf, (int)position - (firstSector * diskSectorSize),
 		into, index, numBytes);
@@ -182,7 +188,7 @@ class OpenFileReal implements OpenFile {
      *			read/written.
      */
     public int writeAt(byte from[], int index, int numBytes, long position) {
-
+	
 	int fileLength = hdr.fileLength();
 	int i, firstSector, lastSector, numSectors;
 	boolean firstAligned, lastAligned;
@@ -221,7 +227,7 @@ class OpenFileReal implements OpenFile {
 	for (i = firstSector; i <= lastSector; i++)	
 	    filesystem.writeSector(hdr.byteToSector(i * diskSectorSize), 
 		    buf, (i - firstSector) * diskSectorSize);
-
+	
 	return numBytes;
     }
 
@@ -231,7 +237,9 @@ class OpenFileReal implements OpenFile {
      * @return the length of the file in bytes.
      */
     public long length() { 
-	return hdr.fileLength(); 
+	int length;
+	length = hdr.fileLength();
+	return length;
     }
 
     /**

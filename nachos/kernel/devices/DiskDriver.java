@@ -235,11 +235,11 @@ public class DiskDriver {
 	busy = true;
 	
 	if (currentRequest.isRead) {
-	    Debug.println('0', "Reading track " + getTrackNumber(currentRequest.sectorNumber));
+	    Debug.println('0', "Reading track " + getTrackNumber(currentRequest.sectorNumber) + ", sector " + currentRequest.sectorNumber);
 	    disk.readRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
 	}
 	else {
-	    Debug.println('0', "Writing track " + getTrackNumber(currentRequest.sectorNumber));
+	    Debug.println('0', "Writing track " + getTrackNumber(currentRequest.sectorNumber) + ", sector " + currentRequest.sectorNumber);
 	    disk.writeRequest(currentRequest.sectorNumber, currentRequest.buffer, currentRequest.index);
 	}
     }
