@@ -114,6 +114,22 @@ public class ExceptionHandler implements nachos.machine.ExceptionHandler {
 		    CPU.readRegister(MIPS.NextPCReg)+4);
 	    return;
 	}
+	
+	else if (which == MachineException.AddressErrorException) {
+	   Debug.println('0', "AddressErrorException at " + MIPS.BadVAddrReg);
+	   AddrSpace addrSpace = ((UserThread)NachosThread.currentThread()).space;
+	   addrSpace.extendPageTable(MIPS.BadVAddrReg);
+	   
+	   return;
+	}
+	
+	else if (which == MachineException.PageFaultException) {
+	    Debug.println('0', "PageFaultException at " + MIPS.BadVAddrReg);
+	    AddrSpace addrSpace = ((UserThread)NachosThread.currentThread()).space;
+	    addrSpace.initializePage(MIPS.BadVAddrReg);
+	    
+	    return;
+	}
 
 	System.out.println("Unexpected user mode exception " + which +
 		", " + type);

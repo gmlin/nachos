@@ -341,4 +341,33 @@ private void free(TranslationEntry[] pageTable, int virtualPage) {
       
       return hasNoUserThreads;
   }
+  
+  public void extendPageTable(int addr) {
+      TranslationEntry[] extendedPageTable = new TranslationEntry[addr + 1];
+      TranslationEntry[] pageTable = getCurrentPageTable();
+      
+      for (int i = 0; i < pageTable.length; i++) {
+	  extendedPageTable[i] = pageTable[i];
+      }
+      
+      for (int i = pageTable.length; i <= addr; i++) {
+	  extendedPageTable[i] = new TranslationEntry();
+	  extendedPageTable[i].virtualPage = i;
+	  extendedPageTable[i].physicalPage = -1;
+	  extendedPageTable[i].valid = false;
+	  extendedPageTable[i].use = false;
+	  extendedPageTable[i].dirty = false;
+	  extendedPageTable[i].readOnly = false;
+      }
+      
+      threadPageTables.put((UserThread)NachosThread.currentThread(), extendedPageTable);
+      CPU.setPageTable(extendedPageTable);
+      
+      Debug.println('0', "Page table extended from " + pageTable.length + " entries to " + extendedPageTable.length);
+  }
+  
+  public void initializePage(int addr) {
+      TranslationEntry[] pageTable = getCurrentPageTable();
+      initializePage(pageTable, addr);
+  }
 }
