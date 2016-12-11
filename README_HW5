@@ -1,0 +1,36 @@
+Description
+###########
+
+# On-Demand Memory Allocation
+
+To achieve On-Demand Memory Allocation, I modified the ExceptionHandler to handle AddressErrorException and
+PageFaultException. Once an AddressErrorException occurs, the page table for the process is copied into an array that can 
+fit the extra page table entries. The number of page table entries that the new page table contains is 1 more than the
+virtual address that caused the exception. This virtual address is stored in MIPS.BadVAddrReg. At first these page table 
+entries are marked invalid. The new page table then replaces the old page table. Once that is complete, the control is 
+returned to user mode without incrementing the program counter. The same instruction will then be recalled, without 
+triggering the AddressErrorException. The newly added page table entries are marked invalid so an attempt at accessing the 
+page will result in a PageFaultException. When a PageFaultException occurs the page table entry of the virtual address 
+stored in MIPS.BadVAddrReg needs to be assigned an unused physical page and marked valid. Once again, the program counter
+is not updated and control is returned to the user. The user code should now be able to run its instruction without
+a PageFaultException.
+
+# Dynamic Storage Management
+
+To implement malloc and free, I made use of the heap_start and heap_limit variables that I set in start.s with the stack
+pointer. I used the struct memory_region to keep track of the free memory regions. malloc looks through the free list to
+see if there are any big enough memory regions and if so, returns a pointer to that memory region. Otherwise, memory is
+allocated by increasing the heap_limit variable. When freeing a pointer, pointer arithmetic is done to get back the
+pointer to the struct and then it is added back into the free list. I created a test program called malloc-test to test
+my malloc and free methods.
+
+# Paging and Replacement
+
+I did not have enough time to start this part of the assignment. 
+
+Instructions
+############
+
+To run the test program, compile malloc-test.c and append -x test/malloc-test to the run configuration. Unfortunately the
+setting of heap_start and heap_limit in start.s does not seem to have worked so the two variables are 0. This causes an
+ArrayIndexOutOfBoundsException in my code when trying to extend the page tables for a AddressErrorException.
