@@ -107,16 +107,12 @@ public class AddrSpace {
 	     + UserStackSize;	// we need to increase the size
     				// to leave room for the stack
     int numPages = (int)(size / Machine.PageSize);
-
     Debug.ASSERT((numPages <= Machine.NumPhysPages),// check we're not trying
 		 "AddrSpace constructor: Not enough memory!");
                                                 // to run anything too big --
 						// at least until we have
 						// virtual memory
 
-    Debug.println('a', "Initializing address space, numPages=" 
-		+ numPages + ", size=" + size);
-    
     // first, set up the translation 
     TranslationEntry[] pageTable = new TranslationEntry[numPages];
     
@@ -343,14 +339,14 @@ private void free(TranslationEntry[] pageTable, int virtualPage) {
   }
   
   public void extendPageTable(int addr) {
-      TranslationEntry[] extendedPageTable = new TranslationEntry[addr + 1];
+      int virtualPage = addr / Machine.PageSize;
+      TranslationEntry[] extendedPageTable = new TranslationEntry[virtualPage + 1];
       TranslationEntry[] pageTable = getCurrentPageTable();
-      
       for (int i = 0; i < pageTable.length; i++) {
 	  extendedPageTable[i] = pageTable[i];
       }
       
-      for (int i = pageTable.length; i <= addr; i++) {
+      for (int i = pageTable.length; i <= virtualPage; i++) {
 	  extendedPageTable[i] = new TranslationEntry();
 	  extendedPageTable[i].virtualPage = i;
 	  extendedPageTable[i].physicalPage = -1;
@@ -367,7 +363,9 @@ private void free(TranslationEntry[] pageTable, int virtualPage) {
   }
   
   public void initializePage(int addr) {
+      int virtualPage = addr / Machine.PageSize;
       TranslationEntry[] pageTable = getCurrentPageTable();
-      initializePage(pageTable, addr);
+      initializePage(pageTable, virtualPage);
+      CPU.setPageTable(pageTable);
   }
 }

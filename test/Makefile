@@ -68,8 +68,8 @@ halt: halt.o start.o
 	$(CC) $(SFLAGS) $< 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
-%: %.o start.o
-	$(LD) $(LDFLAGS) start.o $< -o $*.coff
+%: %.o start.o malloc.o
+	$(LD) $(LDFLAGS) start.o malloc.o $< -o $*.coff
 	rm $*.o
 	$(COFF2NOFF) $*.coff $@
 	rm $*.coff

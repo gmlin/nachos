@@ -29,6 +29,14 @@ __start:
 	move	$4,$0		
 	jal	Exit	 /* if we return from main, exit(0) */
 	.end __start
+	sw		$sp,heap_start
+	sw		$sp,heap_limit
+	.data
+	.globl heap_start, heap_limit
+	heap_start:
+	.word	0
+	heap_limit:
+	.word	0
 
 /* -------------------------------------------------------------
  * System call stubs:
